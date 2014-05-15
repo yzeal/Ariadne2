@@ -5,6 +5,7 @@ public class GlobalVariables : MonoBehaviour {
 
 //	public bool[] switches;
 	public bool deleteProgressAtStart; //zum Testen
+	public bool autoSave;
 
 	public static GlobalVariables Instance { get; private set; }
 	

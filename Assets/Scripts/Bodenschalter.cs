@@ -6,6 +6,16 @@ public class Bodenschalter : MonoBehaviour {
 	public int id;
 	public bool on;
 
+	public GameObject bodenPlatte;
+	public GameObject dachPlatte;
+	public ParticleSystem partikelOben;
+	public ParticleSystem partikelUnten;
+
+	public Color offColor;
+	public Color onColor;
+
+	private bool justActivated;
+
 	// Use this for initialization
 	void Start () {
 
@@ -14,21 +24,51 @@ public class Bodenschalter : MonoBehaviour {
 		}else{
 			on = true;
 		}
+
+		justActivated = false;
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		if(on){
-			gameObject.GetComponent<MeshRenderer>().material.SetColor("_Color", Color.green);
+			bodenPlatte.GetComponent<MeshRenderer>().material.SetColor("_Color", onColor);
+			dachPlatte.GetComponent<MeshRenderer>().material.SetColor("_Color", onColor);
+			partikelOben.Play();
+			partikelUnten.Play();
+		}else{
+			bodenPlatte.GetComponent<MeshRenderer>().material.SetColor("_Color", offColor);
+			dachPlatte.GetComponent<MeshRenderer>().material.SetColor("_Color", offColor);
+			partikelOben.Stop();
+			partikelOben.Clear();
+			partikelUnten.Stop();
+			partikelUnten.Clear();
 		}
 	}
 
 	void OnTriggerEnter(Collider other) {
 
-		if(!on && other.CompareTag("Player")){
+		if(!justActivated && !on && other.CompareTag("Player")){
+//		if(!on && other.CompareTag("Player")){
 			on = true;
-			PlayerPrefs.SetInt(Application.loadedLevelName + "Switch" + id, 1);
-		}
-		
+			if(GlobalVariables.Instance.autoSave){
+				PlayerPrefs.SetInt(Application.loadedLevelName + "Switch" + id, 1);
+			}
+		}else
+
+		if(!justActivated && on && other.CompareTag("Player")){
+//			if(on && other.CompareTag("Player")){
+				on = false;
+				if(GlobalVariables.Instance.autoSave){
+					PlayerPrefs.SetInt(Application.loadedLevelName + "Switch" + id, 0);
+				}
+			}
+
+		justActivated = true;
+
+	}
+
+
+	void OnTriggerExit(Collider other){
+		justActivated = false;
 	}
 }
