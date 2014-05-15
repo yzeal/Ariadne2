@@ -25,6 +25,9 @@ public class Bodenschalter : MonoBehaviour {
 			on = true;
 		}
 
+		partikelOben.startColor = onColor;
+		partikelUnten.startColor = onColor;
+
 		justActivated = false;
 	}
 	
@@ -43,10 +46,11 @@ public class Bodenschalter : MonoBehaviour {
 			partikelUnten.Stop();
 			partikelUnten.Clear();
 		}
+
 	}
 
 	void OnTriggerEnter(Collider other) {
-
+		Debug.Log("trigger enter");
 		if(!justActivated && !on && other.CompareTag("Player")){
 //		if(!on && other.CompareTag("Player")){
 			on = true;
@@ -56,7 +60,7 @@ public class Bodenschalter : MonoBehaviour {
 		}else
 
 		if(!justActivated && on && other.CompareTag("Player")){
-//			if(on && other.CompareTag("Player")){
+//		if(on && other.CompareTag("Player")){
 				on = false;
 				if(GlobalVariables.Instance.autoSave){
 					PlayerPrefs.SetInt(Application.loadedLevelName + "Switch" + id, 0);
