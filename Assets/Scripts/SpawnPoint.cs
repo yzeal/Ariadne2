@@ -8,7 +8,7 @@ public class SpawnPoint : MonoBehaviour {
 	public ExitDirection spawnPointDirection;
 	public ExitLevel spawnPointLevel;
 
-	public GameObject mainCameraRig;
+//	public GameObject mainCameraRig;
 
 	// Use this for initialization
 	void Start () {
@@ -20,11 +20,13 @@ public class SpawnPoint : MonoBehaviour {
 //			mainCameraRig.transform.rotation = transform.rotation;
 			player.transform.position = transform.position;
 			player.transform.rotation = transform.rotation;
-			mainCameraRig.transform.position = transform.position - 20f * player.transform.forward;
-			Debug.Log("Player positioniert.");
-		}
+//			GameObject mainCameraRig = GameObject.FindWithTag("MainCameraRig");
+//			mainCameraRig.transform.position = transform.position - 20f * player.transform.forward;
+			GameObject.FindWithTag("MainCameraRig").transform.position = transform.position - 20f * player.transform.forward;
 
-		Debug.Log("Gespawnt.");
+			if(GlobalVariables.Instance.autoSave) GlobalVariables.Instance.save();
+			Debug.Log("Gespawnt: " + spawnPointDirection + ", " + spawnPointLevel);
+		}
 
 	}
 	

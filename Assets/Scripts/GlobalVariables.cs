@@ -17,6 +17,7 @@ public class GlobalVariables : MonoBehaviour {
 
 	public ExitDirection exitDirection;
 	public ExitLevel exitLevel;
+	public string currentLevel;
 
 	public static GlobalVariables Instance { get; private set; }
 
@@ -46,25 +47,13 @@ public class GlobalVariables : MonoBehaviour {
 	}
 
 	public void load(){
-		//Load switch states.
-//		for(int i = 0; i < switches.Length; i++){
-//			int switchState = PlayerPrefs.GetInt(Application.loadedLevelName + "Switch" + i);
-//			if(switchState == 1){
-//				switches[i] = true;
-//			}
-//		}
+
 		exitDirection = (ExitDirection) PlayerPrefs.GetInt("ExitDirection");
 		exitLevel = (ExitLevel) PlayerPrefs.GetInt("ExitLevel");
-		Debug.Log (exitDirection.ToString() + ", " + exitLevel.ToString());
+		currentLevel = PlayerPrefs.GetString("CurrentLevel");
 	}
 
 	public void save(){
-		//Save switch states.
-//		for(int i = 0; i < switches.Length; i++){
-//			if(switches[i]){
-//				PlayerPrefs.SetInt(Application.loadedLevelName + "Switch" + i, 1);
-//			}
-//		}
 
 		PlayerPrefs.SetInt("ExitDirection", (int) exitDirection);
 		PlayerPrefs.SetInt("ExitLevel", (int) exitLevel);
