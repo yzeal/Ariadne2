@@ -1,14 +1,26 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+public enum ExitDirection{
+	NORTH, EAST, SOUTH, WEST
+}
+
+public enum ExitLevel{
+	GROUND, AIRWELL
+}
+
 public class GlobalVariables : MonoBehaviour {
 
 //	public bool[] switches;
 	public bool deleteProgressAtStart; //zum Testen
 	public bool autoSave;
 
+	public ExitDirection exitDirection;
+	public ExitLevel exitLevel;
+
 	public static GlobalVariables Instance { get; private set; }
-	
+
+
 	void Awake(){
 		
 		if(Instance != null && Instance != this)
@@ -22,6 +34,8 @@ public class GlobalVariables : MonoBehaviour {
 
 		if(deleteProgressAtStart){
 			PlayerPrefs.DeleteAll();
+		}else{
+			load();
 		}
 	}
 	
@@ -39,6 +53,9 @@ public class GlobalVariables : MonoBehaviour {
 //				switches[i] = true;
 //			}
 //		}
+		exitDirection = (ExitDirection) PlayerPrefs.GetInt("ExitDirection");
+		exitLevel = (ExitLevel) PlayerPrefs.GetInt("ExitLevel");
+		Debug.Log (exitDirection.ToString() + ", " + exitLevel.ToString());
 	}
 
 	public void save(){
@@ -48,6 +65,10 @@ public class GlobalVariables : MonoBehaviour {
 //				PlayerPrefs.SetInt(Application.loadedLevelName + "Switch" + i, 1);
 //			}
 //		}
+
+		PlayerPrefs.SetInt("ExitDirection", (int) exitDirection);
+		PlayerPrefs.SetInt("ExitLevel", (int) exitLevel);
+		PlayerPrefs.SetString("CurrentLevel", Application.loadedLevelName);
 	}
 
 }

@@ -40,7 +40,7 @@ public class Door : MonoBehaviour {
 				PlayerPrefs.SetInt(Application.loadedLevelName + "Door" + id, 1);
 			}
 			transform.position = Vector3.Lerp(transform.position, endpos, Time.deltaTime);//TEMP
-			Debug.Log("Tür " + id + " geöffnet.");
+//			Debug.Log("Tür " + id + " geöffnet.");
 		}
 
 		if(!open && transform.position != startpos){
@@ -48,7 +48,7 @@ public class Door : MonoBehaviour {
 				PlayerPrefs.SetInt(Application.loadedLevelName + "Door" + id, 0);
 			}
 			transform.position = Vector3.Lerp(transform.position, startpos, Time.deltaTime);//TEMP
-			Debug.Log("Tür " + id + " geschlossen.");
+//			Debug.Log("Tür " + id + " geschlossen.");
 		}
 
 	}

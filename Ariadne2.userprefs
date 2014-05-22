@@ -1,8 +1,10 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace />
-  <MonoDevelop.Ide.Workbench ActiveDocument="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\HUD\HUDRoute.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\GlobalVariables.cs">
     <Files>
-      <File FileName="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\HUD\HUDRoute.cs" Line="23" Column="2" />
+      <File FileName="Assets\Scripts\GlobalVariables.cs" Line="16" Column="23" />
+      <File FileName="Assets\Scripts\SpawnPoint.cs" Line="6" Column="2" />
+      <File FileName="Assets\Scripts\Door.cs" Line="58" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
