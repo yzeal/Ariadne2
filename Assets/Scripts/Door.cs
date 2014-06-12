@@ -1,9 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+public enum DoorDirection{
+	UP, LEFT, RIGHT, DOWN
+}
+
 public class Door : MonoBehaviour {
 
 	public int id;
+	public DoorDirection openDirection;
+	public int openDistance = 1;
 
 	public Bodenschalter[] bodenschalter;
 	public bool open;
@@ -20,8 +26,19 @@ public class Door : MonoBehaviour {
 			open = true;
 		}
 
+		switch(openDirection){
+//			case DoorDirection.UP: endpos = transform.position + Vector3.up*transform.localScale.y; break;
+//			case DoorDirection.DOWN: endpos = transform.position + Vector3.down*transform.localScale.y; break;
+//			case DoorDirection.LEFT: endpos = transform.position + Vector3.left*transform.localScale.y; break;
+//			default: endpos = transform.position + Vector3.right*transform.localScale.y; break;
+			case DoorDirection.UP: endpos = transform.position + Vector3.up*openDistance*4f; break;
+			case DoorDirection.DOWN: endpos = transform.position + Vector3.down*openDistance*4f; break;
+			case DoorDirection.LEFT: endpos = transform.position + Vector3.left*openDistance*4f; break;
+			default: endpos = transform.position + Vector3.right*openDistance*4f; break;
+		}
+
 		startpos = transform.position;
-		endpos = transform.position + Vector3.down*transform.localScale.y;//TEMP
+//		endpos = transform.position + Vector3.down*transform.localScale.y;//TEMP
 	
 	}
 	

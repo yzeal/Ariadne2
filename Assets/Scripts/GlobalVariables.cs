@@ -17,7 +17,8 @@ public class GlobalVariables : MonoBehaviour {
 
 	public ExitDirection exitDirection;
 	public ExitLevel exitLevel;
-	public string currentLevel;
+	public int currentLevel;
+	public string[] levelSequence;
 
 	public static GlobalVariables Instance { get; private set; }
 
@@ -35,9 +36,11 @@ public class GlobalVariables : MonoBehaviour {
 
 		if(deleteProgressAtStart){
 			PlayerPrefs.DeleteAll();
-		}else{
-			load();
-		}
+			//TODO neue levelSequence
+		}//else{
+//			load();
+//		}
+		load();
 	}
 	
 
@@ -50,14 +53,32 @@ public class GlobalVariables : MonoBehaviour {
 
 		exitDirection = (ExitDirection) PlayerPrefs.GetInt("ExitDirection");
 		exitLevel = (ExitLevel) PlayerPrefs.GetInt("ExitLevel");
-		currentLevel = PlayerPrefs.GetString("CurrentLevel");
+		currentLevel = PlayerPrefs.GetInt("CurrentLevel");
+
+
+		for(int i = 0; i < 5; i++){
+			levelSequence[i] = PlayerPrefs.GetString("LevelSequence" + i);
+		}
+
+		if(levelSequence[0] == ""){
+			for(int i = 0; i < 4; i++){
+				int supplevel = Random.Range(0, 2); //TODO mehr als 2 sublevel!
+				levelSequence[i] = "level" + i + "-" + supplevel;
+			}
+			levelSequence[4] = "level4";
+		}
+
 	}
 
 	public void save(){
 
 		PlayerPrefs.SetInt("ExitDirection", (int) exitDirection);
 		PlayerPrefs.SetInt("ExitLevel", (int) exitLevel);
-		PlayerPrefs.SetString("CurrentLevel", Application.loadedLevelName);
+		PlayerPrefs.SetInt("CurrentLevel", currentLevel);
+
+		for(int i = 0; i < 5; i++){
+			PlayerPrefs.SetString("LevelSequence" + i, levelSequence[i]);
+		}
 	}
 
 }

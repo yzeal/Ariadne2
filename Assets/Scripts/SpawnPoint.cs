@@ -4,7 +4,8 @@ using com.ootii.Cameras;
 //using com.ootii.AI.Controllers;
 
 public class SpawnPoint : MonoBehaviour {
-	
+
+	public int currentLevelNumber;
 	public ExitDirection spawnPointDirection;
 	public ExitLevel spawnPointLevel;
 
@@ -24,6 +25,7 @@ public class SpawnPoint : MonoBehaviour {
 //			mainCameraRig.transform.position = transform.position - 20f * player.transform.forward;
 			GameObject.FindWithTag("MainCameraRig").transform.position = transform.position - 20f * player.transform.forward;
 
+			GlobalVariables.Instance.currentLevel = currentLevelNumber;
 			if(GlobalVariables.Instance.autoSave) GlobalVariables.Instance.save();
 			Debug.Log("Gespawnt: " + spawnPointDirection + ", " + spawnPointLevel);
 		}

@@ -6,11 +6,11 @@ public class Teleport : MonoBehaviour {
 	public ExitDirection exitDirection;
 	public ExitLevel exitLevel;
 
-	public string nextLevelName;
+	public int nextLevel;
 
 	void OnTriggerEnter(Collider other){
 		GlobalVariables.Instance.exitDirection = exitDirection;
 		GlobalVariables.Instance.exitLevel = exitLevel;
-		Application.LoadLevel(nextLevelName);
+		Application.LoadLevel(GlobalVariables.Instance.levelSequence[nextLevel]);
 	}
 }
