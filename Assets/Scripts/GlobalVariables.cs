@@ -20,6 +20,8 @@ public class GlobalVariables : MonoBehaviour {
 	public int currentLevel;
 	public string[] levelSequence;
 
+	public bool newGame;
+
 	public static GlobalVariables Instance { get; private set; }
 
 
@@ -36,17 +38,21 @@ public class GlobalVariables : MonoBehaviour {
 
 		if(deleteProgressAtStart){
 			PlayerPrefs.DeleteAll();
-			//TODO neue levelSequence
-		}//else{
-//			load();
-//		}
-		load();
+			Debug.Log("deleting");
+		}
 	}
 	
 
 	// Update is called once per frame
 	void Update () {
-	
+		if(Input.GetButton("mainMenu")){
+			if(autoSave) save();
+			Application.LoadLevel("start");
+		}
+	}
+
+	void OnGUI(){
+		// wg "!dest.m_MultiFrameGUIState.m_NamedKeyControlList"-Error sonst. (???)
 	}
 
 	public void load(){
@@ -61,13 +67,18 @@ public class GlobalVariables : MonoBehaviour {
 		}
 
 		if(levelSequence[0] == ""){
+			newGame = true;
+			currentLevel = 0;
 			for(int i = 0; i < 4; i++){
 				int supplevel = Random.Range(0, 2); //TODO mehr als 2 sublevel!
 				levelSequence[i] = "level" + i + "-" + supplevel;
 			}
 			levelSequence[4] = "level4";
+		}else{
+			newGame = false;
 		}
 
+		save();
 	}
 
 	public void save(){
@@ -79,6 +90,12 @@ public class GlobalVariables : MonoBehaviour {
 		for(int i = 0; i < 5; i++){
 			PlayerPrefs.SetString("LevelSequence" + i, levelSequence[i]);
 		}
+	}
+
+	public void changeScene(int nLevel){
+		currentLevel = nLevel;
+		if(autoSave) PlayerPrefs.SetInt("CurrentLevel", nLevel);
+		Application.LoadLevel(levelSequence[nLevel]);
 	}
 
 }

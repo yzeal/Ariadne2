@@ -14,7 +14,11 @@ public class MinotaurusFollow : MonoBehaviour {
 	private NavMeshAgent agent;
 	public bool followCharacter;
 	private bool seenByCharacter;
-	private AudioSource soundTest;
+	public AudioSource soundTest;
+
+	private bool stop;
+
+	public AudioSource grargh;
 
 	private Vector3 startPosition;
 	
@@ -22,7 +26,7 @@ public class MinotaurusFollow : MonoBehaviour {
     void Start() {
 		player = GameObject.FindWithTag("Player");
         agent = GetComponent<NavMeshAgent>();
-		soundTest = GetComponent<AudioSource>();
+//		soundTest = GetComponent<AudioSource>();
 		startPosition = transform.position;
 
 		seenByCharacter = false;
@@ -45,17 +49,44 @@ public class MinotaurusFollow : MonoBehaviour {
        
 		if(followCharacter){
 			if(!seenByCharacter){
+				if(!soundTest.isPlaying){
+					soundTest.Play();
+				}
 				agent.SetDestination(player.transform.position);
 			}else{
+				if(soundTest.isPlaying){
+					soundTest.Pause();
+				}
 				agent.SetDestination(transform.position);
 			}        	
 		}
+
+		if(stop){
+			agent.SetDestination(transform.position);
+		}
             
     }
+
+	void OnCollisionEnter(Collision other){
+		if(other.gameObject.CompareTag("Player")){
+			grargh.Play();
+			if(!IsInvoking("kill")){
+				if(soundTest != null && soundTest.isPlaying){
+					soundTest.Stop();
+				}
+				stop = true;
+				Invoke("kill", grargh.clip.length);
+			}
+		}
+	}
+
+	private void kill(){
+		Application.LoadLevel(GlobalVariables.Instance.levelSequence[GlobalVariables.Instance.currentLevel]);
+	}
 	
 	public void inRange(){
 
-		if(soundTest != null && !followCharacter){
+		if(soundTest != null && !soundTest.isPlaying){
 			soundTest.Play();
 		}
 		followCharacter = true;
@@ -64,13 +95,17 @@ public class MinotaurusFollow : MonoBehaviour {
 	
 	public void outOfRange(){
 
+		if(soundTest != null && soundTest.isPlaying){
+			soundTest.Stop();
+		}
+
 		followCharacter = false;
 
 		if(returnToStartPosition){		
 			agent.SetDestination(startPosition);
 		}
 
-		Debug.Log("out of");
+//		Debug.Log("out of");
 	}
-	
+
 }

@@ -11,6 +11,10 @@ public class Teleport : MonoBehaviour {
 	void OnTriggerEnter(Collider other){
 		GlobalVariables.Instance.exitDirection = exitDirection;
 		GlobalVariables.Instance.exitLevel = exitLevel;
-		Application.LoadLevel(GlobalVariables.Instance.levelSequence[nextLevel]);
+
+//		GlobalVariables.Instance.currentLevel = nextLevel;
+//		if(GlobalVariables.Instance.autoSave) GlobalVariables.Instance.save();
+//		Application.LoadLevel(GlobalVariables.Instance.levelSequence[nextLevel]);
+		GlobalVariables.Instance.changeScene(nextLevel);
 	}
 }

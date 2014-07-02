@@ -1,20 +1,14 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace />
-  <MonoDevelop.Ide.Workbench ActiveDocument="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\Rosentreppe\RosentreppeLogicStart.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\MinotaurusFollow.cs">
     <Files>
-      <File FileName="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\AudioSourceHandler.cs" Line="10" Column="8" />
-      <File FileName="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\GlobalVariables.cs" Line="1" Column="1" />
-      <File FileName="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\HUD\HUDRoute.cs" Line="111" Column="44" />
-      <File FileName="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\HUD\HUDMenu.cs" Line="1" Column="1" />
-      <File FileName="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\HUD\HUDPainting.cs" Line="124" Column="64" />
-      <File FileName="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\Dialogue.cs" Line="175" Column="3" />
-      <File FileName="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\Route\Route.cs" Line="106" Column="26" />
-      <File FileName="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\Choice.cs" Line="312" Column="117" />
-      <File FileName="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\Items\Bild.cs" Line="108" Column="3" />
-      <File FileName="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\Paint.cs" Line="198" Column="3" />
-      <File FileName="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\Preloader.cs" Line="49" Column="77" />
-      <File FileName="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\HUD\RoutenInfo.cs" Line="186" Column="4" />
-      <File FileName="..\..\Hypermedia\Unity\FolkloreRosentreppe\Assets\Scripts\Rosentreppe\RosentreppeLogicStart.cs" Line="56" Column="3" />
+      <File FileName="Assets\Scripts\StartGame.cs" Line="91" Column="4" />
+      <File FileName="Assets\Scripts\GlobalVariables.cs" Line="41" Column="9" />
+      <File FileName="Assets\Scripts\SpawnPoint.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\Teleport.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\Preloader.cs" Line="8" Column="32" />
+      <File FileName="Assets\Scripts\MinotaurusFollow.cs" Line="68" Column="17" />
+      <File FileName="Assets\Scripts\MinotaurusTrigger.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
