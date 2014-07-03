@@ -15,6 +15,8 @@ public class GlobalVariables : MonoBehaviour {
 	public bool deleteProgressAtStart; //zum Testen
 	public bool autoSave;
 
+	public float minotaurusSpeed = 3.5f;
+
 	public ExitDirection exitDirection;
 	public ExitLevel exitLevel;
 	public int currentLevel;
@@ -75,6 +77,7 @@ public class GlobalVariables : MonoBehaviour {
 			}
 			levelSequence[4] = "level4";
 		}else{
+			minotaurusSpeed = PlayerPrefs.GetFloat("MinotaurusSpeed");
 			newGame = false;
 		}
 
@@ -86,6 +89,7 @@ public class GlobalVariables : MonoBehaviour {
 		PlayerPrefs.SetInt("ExitDirection", (int) exitDirection);
 		PlayerPrefs.SetInt("ExitLevel", (int) exitLevel);
 		PlayerPrefs.SetInt("CurrentLevel", currentLevel);
+		PlayerPrefs.SetFloat("MinotaurusSpeed", minotaurusSpeed);
 
 		for(int i = 0; i < 5; i++){
 			PlayerPrefs.SetString("LevelSequence" + i, levelSequence[i]);

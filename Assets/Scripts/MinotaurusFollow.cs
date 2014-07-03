@@ -31,6 +31,8 @@ public class MinotaurusFollow : MonoBehaviour {
 		startPosition = transform.position;
 
 		seenByCharacter = false;
+
+		agent.speed = GlobalVariables.Instance.minotaurusSpeed;
     }
 	
     void Update() {
