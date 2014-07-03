@@ -2,7 +2,7 @@
 using System.Collections;
 
 public enum DoorDirection{
-	UP, LEFT, RIGHT, DOWN
+	UP, LEFT, RIGHT, DOWN, FWD, BWD
 }
 
 public class Door : MonoBehaviour {
@@ -31,10 +31,12 @@ public class Door : MonoBehaviour {
 //			case DoorDirection.DOWN: endpos = transform.position + Vector3.down*transform.localScale.y; break;
 //			case DoorDirection.LEFT: endpos = transform.position + Vector3.left*transform.localScale.y; break;
 //			default: endpos = transform.position + Vector3.right*transform.localScale.y; break;
-			case DoorDirection.UP: endpos = transform.position + Vector3.up*openDistance*4f; break;
-			case DoorDirection.DOWN: endpos = transform.position + Vector3.down*openDistance*4f; break;
-			case DoorDirection.LEFT: endpos = transform.position + Vector3.left*openDistance*4f; break;
-			default: endpos = transform.position + Vector3.right*openDistance*4f; break;
+			case DoorDirection.UP: endpos = transform.position + Vector3.up*openDistance*5f; break;
+			case DoorDirection.DOWN: endpos = transform.position + Vector3.down*openDistance*5f; break;
+			case DoorDirection.LEFT: endpos = transform.position + Vector3.left*openDistance*5f; break;
+			case DoorDirection.FWD: endpos = transform.position + transform.forward*openDistance*5f; break;
+			case DoorDirection.BWD: endpos = transform.position - transform.forward*openDistance*5f; break;
+			default: endpos = transform.position + Vector3.right*openDistance*5f; break;
 		}
 
 		startpos = transform.position;

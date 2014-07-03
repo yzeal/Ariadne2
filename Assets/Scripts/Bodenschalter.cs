@@ -28,6 +28,9 @@ public class Bodenschalter : MonoBehaviour {
 		partikelOben.startColor = onColor;
 		partikelUnten.startColor = onColor;
 
+		bodenPlatte.GetComponent<MeshRenderer>().material.SetColor("_Color", offColor);
+		dachPlatte.GetComponent<MeshRenderer>().material.SetColor("_Color", offColor);
+
 		justActivated = false;
 	}
 	

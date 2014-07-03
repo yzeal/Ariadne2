@@ -15,6 +15,8 @@ public class StartGame : MonoBehaviour {
 	private bool b1;
 	private bool b2;
 
+	private bool disable;
+
 	// Use this for initialization
 	void Start () {
 
@@ -32,19 +34,31 @@ public class StartGame : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if(Input.GetButtonDown("menuUp") && !newGame){
+		if((Input.GetButtonDown("menuUp") || Input.GetAxis("Vertical") < -0.1f) && !newGame && !disable){
 			currentButton--;
+			disable = true;
+			if(!IsInvoking("enableMenuScrolling")){
+				Invoke("enableMenuScrolling", 0.2f);
+			}
 			if(currentButton < 0){
 				currentButton = 1;
 			}
-		}else if(Input.GetButtonDown("menuDown") && !newGame){
+		}else if((Input.GetButtonDown("menuDown") || Input.GetAxis("Vertical") > 0.1f) && !newGame && !disable){
 			currentButton++;
+			disable = true;
+			if(!IsInvoking("enableMenuScrolling")){
+				Invoke("enableMenuScrolling", 0.2f);
+			}
 			if(currentButton > 1){
 				currentButton = 0;
 			}
 		}
+		Debug.Log(Input.GetAxis("Vertical"));
 
+	}
 
+	private void enableMenuScrolling(){
+		disable = false;
 	}
 
 	void OnGUI(){

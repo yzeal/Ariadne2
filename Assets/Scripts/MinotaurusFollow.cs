@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using com.ootii.AI.Controllers;
 
 [RequireComponent (typeof (AudioSource))]
 public class MinotaurusFollow : MonoBehaviour {
@@ -75,6 +76,7 @@ public class MinotaurusFollow : MonoBehaviour {
 					soundTest.Stop();
 				}
 				stop = true;
+				other.gameObject.GetComponent<MotionController>().enabled = false;
 				Invoke("kill", grargh.clip.length);
 			}
 		}
