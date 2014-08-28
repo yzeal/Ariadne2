@@ -16,6 +16,9 @@ namespace com.ootii.AI.Controllers
     /// Handles the basic motion for getting the avatar into the
     /// crouch position and moving them from the crouch to idle.
     /// </summary>
+    [MotionTooltip("Allows the avatar to move into a 'cat grab' parkour style position. When jumping or falling " +
+                   "the avatar will attempt to grab a ledge. From there, this motions will allow them to move " +
+                   "left or right or climb to the top of the ledge.")]
     public class ClimbCrouch : MotionControllerMotion
     {
         // Enum values for the motion
@@ -45,6 +48,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mMinGroundDistance = 0.3f;
+
+        [MotionTooltip("Minimum distance the grab is valid. Otherwise, the avatar will not grab or will release.")]
         public float MinGroundDistance
         {
             get { return mMinGroundDistance; }
@@ -57,6 +62,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mMinRegrabDistance = 1.0f;
+
+        [MotionTooltip("Minimum distance from the previous grab position before another grab is attempted.")]
         public float MinRegrabDistance
         {
             get { return mMinRegrabDistance; }
@@ -70,6 +77,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mHandGrabOffset = 0.13f;
+
+        [MotionTooltip("Position offset from the avatar's middle ledge grab where the left and right hands will be positioned.")]
         public float HandGrabOffset
         {
             get { return mHandGrabOffset; }
@@ -82,6 +91,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected Vector3 mBodyTargetOffset = new Vector3(0f, -1.25f, -0.65f);
+
+        [MotionTooltip("When a ledge is grabbed, this defines the avatar position from the grab point. Change these values to ensure the avatar's hands fit the ledge.")]
         public Vector3 BodyTargetOffset
         {
             get { return mBodyTargetOffset; }
@@ -95,6 +106,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected Vector3 mExitPositionOffset = new Vector3(0f, 0.015f, 0f);
+
+        [MotionTooltip("When the avatar moves to the top of the ledge, an offset used to ensure the avatar lines up with the idle pose that follows.")]
         public Vector3 ExitPositionOffset
         {
             get { return mExitPositionOffset; }
@@ -107,6 +120,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected Vector3 mToTopVelocity = Vector3.zero;
+
+        [MotionTooltip("Additional velocity that can be added to help move the avatar to the top.")]
         public Vector3 ToTopVelocity
         {
             get { return mToTopVelocity; }
@@ -118,6 +133,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected int mClimbableLayer = 9;
+
+        [MotionTooltip("Any object that is to be climbed needs to be set to this user layer.")]
         public int ClimbableLayer
         {
             get { return mClimbableLayer; }
@@ -129,6 +146,8 @@ namespace com.ootii.AI.Controllers
         /// the climbing character to move left or right.
         /// </summary>
         protected float mMinSideSpaceForMove = 0.6f;
+
+        [MotionTooltip("Minimum space required for the avatar to shimmy to the left or right.")]
         public float MinSideSpaceForMove
         {
             get { return mMinSideSpaceForMove; }
@@ -203,6 +222,7 @@ namespace com.ootii.AI.Controllers
             _Priority = 15;
             mIsStartable = true;
             mIsGravityEnabled = false;
+            mIsNavMeshChangeExpected = true;
         }
 
         /// <summary>
@@ -215,6 +235,7 @@ namespace com.ootii.AI.Controllers
             _Priority = 15;
             mIsStartable = true;
             mIsGravityEnabled = false;
+            mIsNavMeshChangeExpected = true;
         }
 
         /// <summary>
@@ -268,7 +289,6 @@ namespace com.ootii.AI.Controllers
         public override bool TestActivate()
         {
             if (!mIsStartable) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
 
             // Edge info
             bool lEdgeGrabbed = false;
@@ -399,6 +419,7 @@ namespace com.ootii.AI.Controllers
         {
             mIsActive = false;
             mIsStartable = true;
+            mDeactivationTime = Time.time;
             mVelocity = Vector3.zero;
             mAngularVelocity = Vector3.zero;
             mGrabMotion = 0;
@@ -481,6 +502,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         public override void UpdateMotion()
         {
+            if (Time.deltaTime == 0f) { return; }
+
             mVelocity = Vector3.zero;
             mAngularVelocity = Vector3.zero;
 
@@ -529,8 +552,18 @@ namespace com.ootii.AI.Controllers
                         mController.SetAnimatorMotionPhase(mAnimatorLayerIndex, ClimbCrouch.PHASE_SHIMMY_RIGHT, true);
                     }
                 }
-                // Test if we go to the top
+                // If the player is in control, test if we go to the top
                 else if (mController.UseInput && (InputManager.IsJustPressed("Jump") || InputManager.IsPressed("MoveUp")))
+                {
+                    // As we start the climb to the top, disable the collision
+                    UnityEngine.Physics.IgnoreCollision(mController.CharController.collider, mClimbable.collider, true);
+
+                    // Start the movement to the top
+                    mPhase = ClimbCrouch.PHASE_TO_TOP;
+                    mController.SetAnimatorMotionPhase(mAnimatorLayerIndex, ClimbCrouch.PHASE_TO_TOP);
+                }
+                // If the player is NOT in control, test if we should go to the top
+                else if (!mController.UseInput && mController.State.InputY > 0f)
                 {
                     // As we start the climb to the top, disable the collision
                     UnityEngine.Physics.IgnoreCollision(mController.CharController.collider, mClimbable.collider, true);
@@ -567,7 +600,10 @@ namespace com.ootii.AI.Controllers
                 float lDistance = Mathf.Abs(mBodyTargetOffset.z);
 
                 mVelocity = Vector3.zero;
-                if (UnityEngine.Physics.Raycast(mController.transform.position, mController.transform.forward, out sCollisionUpdateInfo, lDistance * mController.CharacterScale * 1.5f, lIsClimbableMask))
+                
+
+                //TT if (UnityEngine.Physics.Raycast(mController.transform.position, mController.transform.forward, out sCollisionUpdateInfo, lDistance * mController.CharacterScale * 1.5f, lIsClimbableMask))
+                if (mController.SafeRaycast(mController.transform.position, mController.transform.forward, ref sCollisionUpdateInfo, lDistance * mController.CharacterScale * 1.5f, lIsClimbableMask))
                 {
                     mVelocity = (mController.transform.forward * (sCollisionUpdateInfo.distance - lDistance)) / Time.deltaTime;
                 }
@@ -745,14 +781,16 @@ namespace com.ootii.AI.Controllers
 
             // Shoot forward and ensure below the edge is blocked
             lRayStart = rPosition + new Vector3(0f, rBottom, 0f);
-            if (!UnityEngine.Physics.Raycast(lRayStart, rForward, out sCollisionInfo, lTargetDistance * mController.CharacterScale, lIsClimbableMask))
+            //TT if (!UnityEngine.Physics.Raycast(lRayStart, rForward, out sCollisionInfo, lTargetDistance * mController.CharacterScale, lIsClimbableMask))
+            if (!mController.SafeRaycast(lRayStart, rForward, ref sCollisionInfo, lTargetDistance * mController.CharacterScale, lIsClimbableMask))
             {
                 return false;
             }
 
             // Shoot forward and ensure above the edge is open
             lRayStart = rPosition + new Vector3(0f, rTop, 0f);
-            if (UnityEngine.Physics.Raycast(lRayStart, rForward, out sCollisionInfo, lTargetDistance * mController.CharacterScale, lIsClimbableMask))
+            //TT if (UnityEngine.Physics.Raycast(lRayStart, rForward, out sCollisionInfo, lTargetDistance * mController.CharacterScale, lIsClimbableMask))
+            if (mController.SafeRaycast(lRayStart, rForward, ref sCollisionInfo, lTargetDistance * mController.CharacterScale, lIsClimbableMask))
             {
                 return false;
             }
@@ -763,7 +801,8 @@ namespace com.ootii.AI.Controllers
             // we shoot a ray down
             lRayStart = sCollisionInfo.point + (rForward * 0.01f);
             lRayStart.y = rPosition.y + rTop;
-            if (!UnityEngine.Physics.Raycast(lRayStart, Vector3.down, out sCollisionInfo, rTop - rBottom + 0.01f, lIsClimbableMask))
+            //TT if (!UnityEngine.Physics.Raycast(lRayStart, Vector3.down, out sCollisionInfo, rTop - rBottom + 0.01f, lIsClimbableMask))
+            if (!mController.SafeRaycast(lRayStart, Vector3.down, ref sCollisionInfo, rTop - rBottom + 0.01f, lIsClimbableMask))
             {
                 return false;
             }
@@ -773,13 +812,15 @@ namespace com.ootii.AI.Controllers
             // last ray (which was shot down).
             lRayStart = rPosition;
             lRayStart.y = sCollisionInfo.point.y - 0.01f;
-            if (!UnityEngine.Physics.Raycast(lRayStart, rForward, out sCollisionInfo, lTargetDistance, lIsClimbableMask))
+            //TT if (!UnityEngine.Physics.Raycast(lRayStart, rForward, out sCollisionInfo, lTargetDistance, lIsClimbableMask))
+            if (!mController.SafeRaycast(lRayStart, rForward, ref sCollisionInfo, lTargetDistance, lIsClimbableMask))
             {
                 return false;
             }
 
             // Test to make sure there's enough room between the grab point (at waist-ish level) and an object behind the player
-            if (UnityEngine.Physics.Raycast(sCollisionInfo.point + Vector3.down, sCollisionInfo.normal, rRadius * 3f, lIsClimbableMask))
+            //TT if (UnityEngine.Physics.Raycast(sCollisionInfo.point + Vector3.down, sCollisionInfo.normal, rRadius * 3f, lIsClimbableMask))
+            if (mController.SafeRaycast(sCollisionInfo.point + Vector3.down, sCollisionInfo.normal, rRadius * 3f, lIsClimbableMask))
             {
                 return false;
             }
@@ -790,14 +831,16 @@ namespace com.ootii.AI.Controllers
             {
                 // Check the right hand
                 Vector3 lRightHandPosition = lRayStart + (rRotation * new Vector3(mHandGrabOffset, 0f, 0f));
-                if (!UnityEngine.Physics.Raycast(lRightHandPosition, rForward, lTargetDistance, lIsClimbableMask))
+                //TT if (!UnityEngine.Physics.Raycast(lRightHandPosition, rForward, lTargetDistance, lIsClimbableMask))
+                if (!mController.SafeRaycast(lRightHandPosition, rForward, lTargetDistance, lIsClimbableMask))
                 {
                     return false;
                 }
 
                 // Check the left hand
                 Vector3 lLeftHandPosition = lRayStart + (rRotation * new Vector3(-mHandGrabOffset, 0f, 0f));
-                if (!UnityEngine.Physics.Raycast(lLeftHandPosition, rForward, lTargetDistance, lIsClimbableMask))
+                //TT if (!UnityEngine.Physics.Raycast(lLeftHandPosition, rForward, lTargetDistance, lIsClimbableMask))
+                if (!mController.SafeRaycast(lLeftHandPosition, rForward, lTargetDistance, lIsClimbableMask))
                 {
                     return false;
                 }
@@ -820,7 +863,8 @@ namespace com.ootii.AI.Controllers
             // Shoot a ray to the left to see if there is room to move
             Vector3 lRayStart = lRoot.position;
             Vector3 lRayDirection = lRoot.rotation * new Vector3((rOffset < 0 ? -1 : 1), 0, 0);
-            if (UnityEngine.Physics.Raycast(lRayStart, lRayDirection, lSideDistance))
+            //TT if (UnityEngine.Physics.Raycast(lRayStart, lRayDirection, lSideDistance))
+            if (mController.SafeRaycast(lRayStart, lRayDirection, lSideDistance))
             {
                 return false;
             }

@@ -58,6 +58,11 @@ namespace com.ootii.Cameras
         }
 
         /// <summary>
+        /// Allows us to track how long the camera has been around.
+        /// </summary>
+        protected float mAge = 0f;
+
+        /// <summary>
         /// We really want the update function to happen after the controller updates.
         /// However, if the controller is on a platform, it has to update in the LateUpdate()
         /// function. Therefore, we let the controller call this function directly.

@@ -15,6 +15,8 @@ namespace com.ootii.AI.Controllers
     /// Fall that occurs when the player is no longer grounded
     /// and didn't come off of a jump
     /// </summary>
+    [MotionTooltip("Motion the avatar moves into when they are no longer grounded and are falling. Once they land, " +
+                   "the avatar can move into the idle pose or a run.")]
     public class Fall : Jump
     {
         // Enum values for the motion
@@ -26,6 +28,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mMinFallHeight = 0.3f;
+
+        [MotionTooltip("Minimum height before the avatar moves into the motion.")]
         public float MinFallHeight
         {
             get { return mMinFallHeight; }
@@ -41,6 +45,7 @@ namespace com.ootii.AI.Controllers
             _Priority = 5;
             mImpulse = 0f;
             mIsStartable = true;
+            mIsNavMeshChangeExpected = true;
         }
 
         /// <summary>
@@ -53,6 +58,7 @@ namespace com.ootii.AI.Controllers
             _Priority = 5;
             mImpulse = 0f;
             mIsStartable = true;
+            mIsNavMeshChangeExpected = true;
         }
 
         /// <summary>
@@ -67,7 +73,6 @@ namespace com.ootii.AI.Controllers
 
             if (mController.IsGrounded) { return false; }
             if (mController.GroundDistance < mMinFallHeight) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
 
             return true;
         }

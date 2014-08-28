@@ -15,6 +15,9 @@ namespace com.ootii.AI.Controllers
     /// Simple blend that allows the avatar to walk or run forward.
     /// There is no rotation, pivoting, etc.
     /// </summary>
+    [MotionTooltip("A forward walk/run blend that allows the avatar to move. In this case, the avatar would " +
+                   "not typically rotate towards the camera. Here, the avatar walks until the input " +
+                   "action occurs. At that point, the avatar would run.")]
     public class SimpleForwardActivated : SimpleForward
     {
         /// <summary>
@@ -23,6 +26,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected string mInputAction = "Sprint";
+
+        [MotionTooltip("The value of the input action to look for that triggers the run.")]
         public string InputAction
         {
             get { return mInputAction; }
@@ -36,6 +41,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected bool mIsInputActionContinuous = true;
+
+        [MotionTooltip("Determines if the input action needs to be constantly pressed or if it acts like a toggle.")]
         public bool IsInputActionContinuous
         {
             get { return mIsInputActionContinuous; }
@@ -48,6 +55,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mMaxInputMagnitude = 0.5f;
+
+        [MotionTooltip("Overrides the normal input to control the avatar's speed when not running.")]
         public float MaxInputMagnitude
         {
             get { return mMaxInputMagnitude; }
@@ -60,6 +69,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mMaxActivatedInputMagnitude = 1.0f;
+
+        [MotionTooltip("Overrides the normal input to control the avatar's speed when running.")]
         public float MaxActivatedInputMagnitude
         {
             get { return mMaxActivatedInputMagnitude; }

@@ -14,11 +14,30 @@ namespace com.ootii.AI.Controllers
     /// <summary>
     /// Simple idle that has the avatar waiting for another motion
     /// </summary>
+    [MotionTooltip("Simple idle that has the avatar standing and waiting.")]
     public class CasualIdle : MotionControllerMotion
     {
         // Enum values for the motion
         public const int PHASE_UNKNOWN = 0;
         public const int PHASE_START = 100;
+
+        /// <summary>
+        /// Determines if the actor will rotate to match the view. This is useful if you're using the Follow Camera.
+        /// </summary>
+        [SerializeField]
+        protected bool mRotateWithView = true;
+
+        [MotionTooltip("Determines if the actor will rotate to match the view. This is useful if you're using the Follow Camera.")]
+        public bool RotateWithView
+        {
+            get { return mRotateWithView; }
+            set { mRotateWithView = value; }
+        }
+
+        /// <summary>
+        /// Turning radius we're trying to reach
+        /// </summary>
+        private float mYaw = 0f;
 
         /// <summary>
         /// Default constructor
@@ -88,7 +107,6 @@ namespace com.ootii.AI.Controllers
             // Handle the disqualifiers
             if (!mIsStartable) { return false; }
             if (!mController.IsGrounded) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
             if (mController.State.InputMagnitudeTrend.Average != 0f) { return false; }
 
             return true;
@@ -101,6 +119,7 @@ namespace com.ootii.AI.Controllers
         /// <param name="rPrevMotion">Motion that this motion is taking over from</param>
         public override bool Activate(MotionControllerMotion rPrevMotion)
         {
+            mYaw = 0f;
             mController.SetAnimatorMotionPhase(mMotionLayer.AnimatorLayerIndex, CasualIdle.PHASE_START, true);
 
             return base.Activate(rPrevMotion);
@@ -117,6 +136,31 @@ namespace com.ootii.AI.Controllers
             {
                 Deactivate();
                 return;
+            }
+
+            // Allow for rotating the view
+            if (mController._UseInput && mRotateWithView)
+            {
+                float lYawTarget = 0f;
+                if (InputManager.ViewX != 0f)
+                {
+                    lYawTarget = InputManager.ViewX * mController.RotationSpeed;
+                }
+
+                // We want to work our way to the goal smoothly
+                if (mYaw < lYawTarget)
+                {
+                    mYaw += (mController.RotationSpeed * 0.1f);
+                    if (mYaw > lYawTarget) { mYaw = lYawTarget; }
+                }
+                else if (mYaw > lYawTarget)
+                {
+                    mYaw -= (mController.RotationSpeed * 0.1f);
+                    if (mYaw < lYawTarget) { mYaw = lYawTarget; }
+                }
+
+                // Assign the current rotation
+                mAngularVelocity.y = mYaw;
             }
 
             // Ensure we're using trend data so we can react appropriately

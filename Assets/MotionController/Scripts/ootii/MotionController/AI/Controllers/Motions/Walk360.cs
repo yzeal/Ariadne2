@@ -15,6 +15,7 @@ namespace com.ootii.AI.Controllers
     /// Simple blend that allows the avatar to walk or run forward.
     /// There is no rotation, pivoting, etc.
     /// </summary>
+    [MotionTooltip("A forward walk/run blend that always keeps the avatar facing forward.")]
     public class Walk360 : MotionControllerMotion
     {
         // Enum values for the motion
@@ -27,21 +28,12 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mRotationAcceleration = 12.0f;
+
+        [MotionTooltip("Determines how quickly the avatar will start rotating or stop rotating.")]
         public float RotationAcceleration
         {
             get { return mRotationAcceleration; }
             set { mRotationAcceleration = value; }
-        }
-
-        /// <summary>
-        /// Minimum 
-        /// </summary>
-        [SerializeField]
-        protected float mMinWallSlideAngle = 30f;
-        public float MinWallSlideInputAngle
-        {
-            get { return mMinWallSlideAngle; }
-            set { mMinWallSlideAngle = value; }
         }
 
         /// <summary>
@@ -100,12 +92,6 @@ namespace com.ootii.AI.Controllers
         {
             if (!mIsStartable) { return false; }
             if (!mController.IsGrounded) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
-
-            // lState = mController.State;
-            //if (lState.Stance != EnumControllerStance.COMBAT_RANGED) { return false; }
-            //if (lState.InputMagnitudeTrend.Value < 0.1f) { return false; }
-            //if (lState.IsForwardPathBlocked && Mathf.Abs(lState.InputFromAvatarAngle) < mMinWallSlideAngle) { return false; }
 
             // Only move in if the stance if we're aiming
             if (InputManager.IsPressed("Aiming")) { return true; }
@@ -123,12 +109,6 @@ namespace com.ootii.AI.Controllers
             if (mIsActivatedFrame) { return true; }
 
             if (!mController.IsGrounded) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
-
-            //ControllerState lState = mController.State;
-            //if (lState.Stance != EnumControllerStance.COMBAT_RANGED) { return false; }
-            //if (lState.IsForwardPathBlocked && Mathf.Abs(lState.InputFromAvatarAngle) < mMinWallSlideAngle) { return false; }
-            //if (lState.InputMagnitudeTrend.Average == 0f) { return false; }
 
             if (!InputManager.IsPressed("Aiming")) { return false; }
 

@@ -364,6 +364,7 @@ namespace com.ootii.Utilities.Debug
             mLines[mLineIndex % Log.LOG_TEXT_COUNT] = lLine;
 
             mLineIndex++;
+            if (mLineIndex >= Log.LOG_TEXT_COUNT) { mLineIndex = Log.LOG_TEXT_COUNT - 1; }
         }
 
         /// <summary>

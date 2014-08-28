@@ -12,26 +12,32 @@ namespace com.ootii.Base
     public interface IBaseObject
     {
         /// <summary>
-        /// Semi-unique ID for the object. This should be unique
-        /// across all objects, but is not required
-        /// </summary>
-        string ID { get; set; }
-
-        /// <summary>
         /// If a value exists, that value represents a 
         /// unique id or key for the object
         /// </summary>
         string GUID { get; set; }
 
         /// <summary>
+        /// Friendly name for the object that doesn't have to be unique
+        /// </summary>
+        string Name { get; set; }
+
+        /// <summary>
         /// Generates a unique ID for the object
         /// </summary>
-        void GenerateGUID();
+        string GenerateGUID();
 
         /// <summary>
         /// Raised after the object has been deserialized. It allows
         /// for any initialization that may need to happen
         /// </summary>
         void OnDeserialized();
+
+        /// <summary>
+        /// Raised after all objects have been deserialized. It allows us
+        /// to perform initialization. This is especially important if
+        /// the initialization relies on other objects.
+        /// </summary>
+        void OnPostDeserialized();
     }
 }

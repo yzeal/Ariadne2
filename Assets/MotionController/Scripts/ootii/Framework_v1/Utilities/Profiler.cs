@@ -203,7 +203,7 @@ namespace com.ootii.Utilities
         /// <returns>String that is the profiler results</returns>
         public override string ToString()
         {
-            return mSpacing + Tag + " - time: " + mRunTime.ToString("0.0000") + "ms avg: " + AverageTime.ToString("0.0000") + " min: " + mMinTime.ToString("0.0000") + " max: " + mMaxTime.ToString("0.0000");
+            return String.Format("{0} {1} - time:{2:f4}ms cnt:{3} avg:{4:f4}ms min:{5:f4}ms max:{6:f4}ms", mSpacing, Tag, mRunTime, mCount, AverageTime, mMinTime, mMaxTime);
         }
 
         // ******************************** STATIC FUNCTIONS ********************************
@@ -255,8 +255,30 @@ namespace com.ootii.Utilities
         /// <returns>String representing the profiler's data</returns>
         public static string ToString(string rProfiler)
         {
-            if (!sProfilers.ContainsKey(rProfiler)) { return ""; }
-            return sProfilers[rProfiler].ToString();
+            if (rProfiler.Length == 0)
+            {
+                float lTotal = 0f;
+                float lAvgTotal = 0f;
+                foreach (Profiler lProfiler in sProfilers.Values)
+                {
+                    lTotal += lProfiler.Time;
+                    lAvgTotal += lProfiler.AverageTime;
+                }
+
+                string lResult = String.Format("Profiles - Time:{0:f4}ms Avg:{1:f4}ms\r\n", lTotal, lAvgTotal);
+
+                foreach (Profiler lProfiler in sProfilers.Values)
+                {
+                    lResult += String.Format("{0} Prc:{1:f3} AvgPrc:{2:f3}\r\n", lProfiler.ToString(), (lProfiler.Time / lTotal), (lProfiler.AverageTime / lAvgTotal));
+                }
+
+                return lResult;
+            }
+            else
+            {
+                if (!sProfilers.ContainsKey(rProfiler)) { return ""; }
+                return sProfilers[rProfiler].ToString();
+            }
         }
     }
 }

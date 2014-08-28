@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using com.ootii.Cameras;
 
 public enum ExitDirection{
 	NORTH, EAST, SOUTH, WEST
@@ -24,8 +25,12 @@ public class GlobalVariables : MonoBehaviour {
 
 	public bool newGame;
 
+	public bool toggleCrawl;
+	public bool crawling;
+
 	public static GlobalVariables Instance { get; private set; }
 
+	private DialogHandler dialogHandler;
 
 	void Awake(){
 		
@@ -51,11 +56,29 @@ public class GlobalVariables : MonoBehaviour {
 			if(autoSave) save();
 			Application.LoadLevel("start");
 		}
+		//Kamera sofort wieder direkt hinter den Spieler setzen; T-Taste bzw. LB (XBOX 360).
+		if(Input.GetButtonDown("resetCamera") && !crawling){
+			GameObject camRig = GameObject.FindWithTag("MainCameraRig");
+			GameObject player = GameObject.FindWithTag("Player");
+			if(camRig != null && player != null){
+				camRig.transform.position = player.transform.position + 2f * player.transform.up  - 2f * player.transform.forward;
+			}
+		}
+
+
+		if(Input.GetKeyDown("p")){
+			crawling = true;
+			toggleCrawl = true;
+		}
 	}
 
 	void OnGUI(){
 		// wg "!dest.m_MultiFrameGUIState.m_NamedKeyControlList"-Error sonst. (???)
 	}
+
+//	void OnLevelWasLoaded(){
+//		untertitelHandler = GameObject.Find("UntertitelHandler").GetComponent<UntertitelHandler>();
+//	}
 
 	public void load(){
 
@@ -72,7 +95,7 @@ public class GlobalVariables : MonoBehaviour {
 			newGame = true;
 			currentLevel = 0;
 			for(int i = 0; i < 4; i++){
-				int supplevel = Random.Range(0, 2); //TODO mehr als 2 sublevel!
+				int supplevel = Random.Range(0, 1); //TODO mehr als 2 sublevel! TEMP: nur einer
 				levelSequence[i] = "level" + i + "-" + supplevel;
 			}
 			levelSequence[4] = "level4";
@@ -94,9 +117,21 @@ public class GlobalVariables : MonoBehaviour {
 		for(int i = 0; i < 5; i++){
 			PlayerPrefs.SetString("LevelSequence" + i, levelSequence[i]);
 		}
+
 	}
 
+//	public void saveSubtitles(){
+//		if(untertitelHandler != null){
+//			for(int i = 0; i < untertitelHandler.subtitles.Length; i++){
+//				if(untertitelHandler.subtitles[i] == null){
+//					PlayerPrefs.SetInt(Application.loadedLevelName + "Subtitle" + i, 1);
+//				}
+//			}
+//		}
+//	}
+
 	public void changeScene(int nLevel){
+		crawling = false;
 		currentLevel = nLevel;
 		if(autoSave) PlayerPrefs.SetInt("CurrentLevel", nLevel);
 		Application.LoadLevel(levelSequence[nLevel]);

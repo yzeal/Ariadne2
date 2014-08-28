@@ -11,30 +11,9 @@ namespace com.ootii.Base
     public class BaseMonoObject : MonoBehaviour, IBaseObject
     {
         /// <summary>
-        /// Semi-unique ID for the object. This should be unique
-        /// across all objects
+        /// Allows others to register and listen for when the GUID changes
         /// </summary>
-        [HideInInspector]
-        public string _ID = "";
-        public string ID
-        {
-            get { return _ID; }
-
-            set
-            {
-                _ID = value;
-
-                // Ensure our next ID is higher
-                int lID = 0;
-                if (int.TryParse(_ID, out lID))
-                {
-                    if (BaseObject.NextID <= lID)
-                    {
-                        BaseObject.NextID = lID + 1;
-                    }
-                }
-            }
-        }
+        public GUIDChangedDelegate GUIDChangedEvent = null;
 
         /// <summary>
         /// If a value exists, that value represents a 
@@ -44,8 +23,33 @@ namespace com.ootii.Base
         public string _GUID = "";
         public string GUID
         {
-            get { return _GUID; }
-            set { _GUID = ""; }
+            get
+            {
+                if (_GUID.Length == 0) { GenerateGUID(); }
+                return _GUID;
+            }
+
+            set
+            {
+                if (value.Length == 0) { return; }
+
+                string lOldGUID = _GUID;
+                _GUID = value;
+
+                if (lOldGUID.Length > 0 && value != lOldGUID)
+                {
+                    OnGUIDChanged(lOldGUID, _GUID);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Friendly name for the object that doesn't have to be unique
+        /// </summary>
+        public string Name
+        {
+            get { return name; }
+            set { name = value; }
         }
 
         /// <summary>
@@ -53,26 +57,33 @@ namespace com.ootii.Base
         /// </summary>
         public BaseMonoObject()
         {
-            _ID = BaseObject.NextID.ToString();
-
-            // Increment the next unique ID
-            BaseObject.NextID++;
-        }
-
-        /// <summary>
-        /// ID constructor
-        /// </summary>
-        public BaseMonoObject(string rID)
-        {
-            ID = rID;
         }
 
         /// <summary>
         /// Generates a unique ID for the object
         /// </summary>
-        public void GenerateGUID()
+        public string GenerateGUID()
         {
             _GUID = Guid.NewGuid().ToString();
+            return _GUID;
+        }
+
+        /// <summary>
+        /// If the GUID changes (which can happen when coping object
+        /// or creating objects from prefabs, we may need to do something special
+        /// </summary>
+        public virtual void OnGUIDChanged(string rOldGUID, string rNewGUID)
+        {
+            // Fire off the delegates
+            if (GUIDChangedEvent != null) { GUIDChangedEvent(rOldGUID, rNewGUID); }
+        }
+
+        /// <summary>
+        /// If the GUID changes (which can happen when coping object
+        /// or creating objects from prefabs, we may need to do something special
+        /// </summary>
+        public virtual void OnGUIDChanged()
+        {
         }
 
         /// <summary>
@@ -80,6 +91,15 @@ namespace com.ootii.Base
         /// for any initialization that may need to happen
         /// </summary>
         public virtual void OnDeserialized()
+        {
+        }
+
+        /// <summary>
+        /// Raised after all objects have been deserialized. It allows us
+        /// to perform initialization. This is especially important if
+        /// the initialization relies on other objects.
+        /// </summary>
+        public virtual void OnPostDeserialized()
         {
         }
     }

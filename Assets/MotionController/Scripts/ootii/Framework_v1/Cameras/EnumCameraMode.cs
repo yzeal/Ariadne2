@@ -26,6 +26,7 @@ namespace com.ootii.Cameras
 		/// the avatar.
 		/// </summary>
 		public const int FIRST_PERSON = 2;
+
 	}
 }
 

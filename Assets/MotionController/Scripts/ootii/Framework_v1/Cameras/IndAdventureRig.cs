@@ -290,7 +290,7 @@ namespace com.ootii.Cameras
 		/// <summary>
 		/// TESTIIIII
 		/// </summary>
-		private float mAge = 0f;
+//		private float mAge = 0f;
 
         /// <summary>
         /// Use this for initialization

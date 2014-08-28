@@ -17,6 +17,8 @@ namespace com.ootii.AI.Controllers
     /// the edge. Other wise it looks wierd with one foot in the air
     /// and one on the ground.
     /// </summary>
+    [MotionTooltip("When the avatar is idle, a test is made to ensure each foot is actually on the ground. " + 
+                   "If either foot is floating in the air, the avatar will slowly slip off the edge.")]
     public class EdgeSlip : MotionControllerMotion
     {
         // Enum values for the motion
@@ -27,6 +29,8 @@ namespace com.ootii.AI.Controllers
         /// the ground before the edge slip occurs.
         /// </summary>
         protected float mMaxFootGap = 0.3f;
+
+        [MotionTooltip("Maximum distance between the foot and ground before the edge slip starts.")]
         public float MaxFootGap
         {
             get { return mMaxFootGap; }
@@ -63,7 +67,6 @@ namespace com.ootii.AI.Controllers
         {
             if (!mIsStartable) { return false; }
             if (!IsInIdleState) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
             if (!mController.State.IsGrounded) { return false; }
             
             // If we get here, we need to do a more indepth test. This time we're looking
@@ -72,11 +75,13 @@ namespace com.ootii.AI.Controllers
             Vector3 lRightFoot = mController.Animator.GetBoneTransform(HumanBodyBones.RightFoot).position;
 
             // Shoot a ray out of each toe to determine if we're grounded
-            Ray lLeftFootRay = new Ray(lLeftFoot, Vector3.down);
-            bool lLeftFootHit = UnityEngine.Physics.Raycast(lLeftFootRay, mMaxFootGap, mController.PlayerMask);
+            //Ray lLeftFootRay = new Ray(lLeftFoot, Vector3.down);
+            //TT bool lLeftFootHit = UnityEngine.Physics.Raycast(lLeftFootRay, mMaxFootGap, mController.PlayerMask);
+            bool lLeftFootHit = mController.SafeRaycast(lLeftFoot, Vector3.down, mMaxFootGap);
 
-            Ray lRightFootRay = new Ray(lRightFoot, Vector3.down);
-            bool lRightFootHit = UnityEngine.Physics.Raycast(lRightFootRay, mMaxFootGap, mController.PlayerMask);
+            //Ray lRightFootRay = new Ray(lRightFoot, Vector3.down);
+            //TT bool lRightFootHit = UnityEngine.Physics.Raycast(lRightFootRay, mMaxFootGap, mController.PlayerMask);
+            bool lRightFootHit = mController.SafeRaycast(lRightFoot, Vector3.down, mMaxFootGap);
 
             // If both feet are on the ground, we can get out. If neither feet
             // are on the ground, we'll get out an let another motion (ie Fall)
@@ -110,11 +115,13 @@ namespace com.ootii.AI.Controllers
             Vector3 lRightFoot = mController.Animator.GetBoneTransform(HumanBodyBones.RightFoot).position;
 
             // Shoot a ray out of each toe to determine if we're grounded
-            Ray lLeftFootRay = new Ray(lLeftFoot, Vector3.down);
-            bool lLeftFootHit = UnityEngine.Physics.Raycast(lLeftFootRay, mMaxFootGap, mController.PlayerMask);
+            //Ray lLeftFootRay = new Ray(lLeftFoot, Vector3.down);
+            //TT bool lLeftFootHit = UnityEngine.Physics.Raycast(lLeftFootRay, mMaxFootGap, mController.PlayerMask);
+            bool lLeftFootHit = mController.SafeRaycast(lLeftFoot, Vector3.down, mMaxFootGap);
 
-            Ray lRightFootRay = new Ray(lRightFoot, Vector3.down);
-            bool lRightFootHit = UnityEngine.Physics.Raycast(lRightFootRay, mMaxFootGap, mController.PlayerMask);
+            //Ray lRightFootRay = new Ray(lRightFoot, Vector3.down);
+            //TT bool lRightFootHit = UnityEngine.Physics.Raycast(lRightFootRay, mMaxFootGap, mController.PlayerMask);
+            bool lRightFootHit = mController.SafeRaycast(lRightFoot, Vector3.down, mMaxFootGap);
 
             // If both feet are on the ground, we can get out. If neither feet
             // are on the ground, we'll get out an let another motion (ie Fall)

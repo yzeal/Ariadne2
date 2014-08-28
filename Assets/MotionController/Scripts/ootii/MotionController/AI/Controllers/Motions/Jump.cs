@@ -15,6 +15,9 @@ namespace com.ootii.AI.Controllers
     /// Standing or running jump. The jump allows for control
     /// while in the air.
     /// </summary>
+    [MotionTooltip("A physics based multi-part jump that allows the player to launch into the " +
+                   "air and recover into the idle pose or a run. The jump is created so the avatar " +
+                   "can jump as high as mass, gravity, and impulse allow.")]
     public class Jump : MotionControllerMotion
     {
         // Enum values for the motion
@@ -36,6 +39,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mImpulse = 31f;
+
+        [MotionTooltip("Amount of instant force applied to raise the avatar up. A value of 31 is good for a mass of 5 (human).")]
         public float Impulse
         {
             get { return mImpulse; }
@@ -47,6 +52,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected bool mMomentumEnabled = false;
+
+        [MotionTooltip("Determines if the avatar's speed and direction before the jump are used to propel the avatar while in the air.")]
         public bool MomentumEnabled
         {
             get { return mMomentumEnabled; }
@@ -59,6 +66,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected bool mControlEnabled = true;
+
+        [MotionTooltip("Determines if the player can control the avatar while in the air.")]
         public bool ControlEnabled
         {
             get { return mControlEnabled; }
@@ -71,6 +80,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mMovementSpeed = 5f;
+
+        [MotionTooltip("Speed of the avatar when in the air. This should roughly match the ground speed of the avatar.")]
         public float MovementSpeed
         {
             get { return mMovementSpeed; }
@@ -83,6 +94,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mRotationMin = 0f;
+
+        [MotionTooltip("Minimum degree the player needs to rotate the avatar before the avatar actually starts to turn. Otherwise, the avatar simply moves in that direction.")]
         public float RotationMin
         {
             get { return mRotationMin; }
@@ -95,6 +108,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mRotationSpeed = 10f;
+
+        [MotionTooltip("Determines how quickly the avatar rotates while in the air. This would be in degrees per second.")]
         public float RotationSpeed
         {
             get { return mRotationSpeed; }
@@ -120,6 +135,7 @@ namespace com.ootii.AI.Controllers
         {
             _Priority = 10;
             mIsStartable = true;
+            mIsNavMeshChangeExpected = true;
         }
 
         /// <summary>
@@ -131,6 +147,7 @@ namespace com.ootii.AI.Controllers
         {
             _Priority = 10;
             mIsStartable = true;
+            mIsNavMeshChangeExpected = true;
         }
 
         /// <summary>
@@ -173,7 +190,8 @@ namespace com.ootii.AI.Controllers
         {
             if (!mIsStartable) { return false; }
             if (!mController.UseInput) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
+			//TESTI
+			if(mController.Stance == EnumControllerStance.SNEAK){ return false; }
 
             if (InputManager.IsJustPressed("Jump"))
             {
@@ -263,10 +281,13 @@ namespace com.ootii.AI.Controllers
         public override void Deactivate()
         {
             mPhase = Jump.PHASE_UNKNOWN;
-            mController.SetAnimatorMotionPhase(mAnimatorLayerIndex, Jump.PHASE_UNKNOWN);
+
+            // TT 7/26/14 - Removed so jump can finish while grabbing ledge
+            //mController.SetAnimatorMotionPhase(mAnimatorLayerIndex, Jump.PHASE_UNKNOWN);
 
             mIsActive = false;
             mIsStartable = true;
+            mDeactivationTime = Time.time;
 
             mVelocity = Vector3.zero;
             if (mController.UseInput && mController.CameraRig != null) { mController.CameraRig.TransitionToMode(mSavedCameraMode); }
@@ -373,7 +394,16 @@ namespace com.ootii.AI.Controllers
                     }
                     else
                     {
-                        if (mPhase != Jump.PHASE_RECOVER_TO_RUN)
+                        if (Mathf.Abs(lState.InputFromAvatarAngle) > 140)
+                        {
+                            lState.GroundLaunchVelocity = Vector3.zero;
+                            if (mPhase != Jump.PHASE_RECOVER_TO_IDLE)
+                            {
+                                mPhase = Jump.PHASE_RECOVER_TO_IDLE;
+                                mController.SetAnimatorMotionPhase(mAnimatorLayerIndex, Jump.PHASE_RECOVER_TO_IDLE);
+                            }
+                        }
+                        else if (mPhase != Jump.PHASE_RECOVER_TO_RUN)
                         {
                             mPhase = Jump.PHASE_RECOVER_TO_RUN;
                             mController.SetAnimatorMotionPhase(mAnimatorLayerIndex, Jump.PHASE_RECOVER_TO_RUN);
@@ -411,7 +441,16 @@ namespace com.ootii.AI.Controllers
                     }
                     else
                     {
-                        if (mPhase != Jump.PHASE_RECOVER_TO_RUN)
+                        if (Mathf.Abs(lState.InputFromAvatarAngle) > 140)
+                        {
+                            lState.GroundLaunchVelocity = Vector3.zero;
+                            if (mPhase != Jump.PHASE_RECOVER_TO_IDLE)
+                            {
+                                mPhase = Jump.PHASE_RECOVER_TO_IDLE;
+                                mController.SetAnimatorMotionPhase(mAnimatorLayerIndex, Jump.PHASE_RECOVER_TO_IDLE);
+                            }
+                        }
+                        else if (mPhase != Jump.PHASE_RECOVER_TO_RUN)
                         {
                             mPhase = Jump.PHASE_RECOVER_TO_RUN;
                             mController.SetAnimatorMotionPhase(mAnimatorLayerIndex, Jump.PHASE_RECOVER_TO_RUN);
@@ -461,7 +500,16 @@ namespace com.ootii.AI.Controllers
                     }
                     else
                     {
-                        if (mPhase != Jump.PHASE_RECOVER_TO_RUN)
+                        if (Mathf.Abs(lState.InputFromAvatarAngle) > 140)
+                        {
+                            lState.GroundLaunchVelocity = Vector3.zero;
+                            if (mPhase != Jump.PHASE_RECOVER_TO_IDLE)
+                            {
+                                mPhase = Jump.PHASE_RECOVER_TO_IDLE;
+                                mController.SetAnimatorMotionPhase(mAnimatorLayerIndex, Jump.PHASE_RECOVER_TO_IDLE);
+                            }
+                        }
+                        else if (mPhase != Jump.PHASE_RECOVER_TO_RUN)
                         {
                             mPhase = Jump.PHASE_RECOVER_TO_RUN;
                             mController.SetAnimatorMotionPhase(mAnimatorLayerIndex, Jump.PHASE_RECOVER_TO_RUN);
@@ -547,12 +595,9 @@ namespace com.ootii.AI.Controllers
                         // what to transition to
                         else
                         {
-                            // Based on the relation of the stick to the ground
-                            // launch velocity, stop the momentum or continue it
-                            if (Mathf.Abs(lState.InputFromAvatarAngle) > 190f)
+                            if (Mathf.Abs(lState.InputFromAvatarAngle) > 140)
                             {
                                 lState.GroundLaunchVelocity = Vector3.zero;
-
                                 if (mPhase != Jump.PHASE_RECOVER_TO_IDLE)
                                 {
                                     mPhase = Jump.PHASE_RECOVER_TO_IDLE;
@@ -623,7 +668,8 @@ namespace com.ootii.AI.Controllers
                 // We'll also deactivate if the player isn't pushing the avatar forward
                 else if (mController.State.InputMagnitudeTrend.Average == 0f) 
                 { 
-                    Deactivate(); 
+                    // Actually, don't do this. It can get us in a wierd state
+                    //Deactivate(); 
                 }
             }
 
@@ -689,11 +735,19 @@ namespace com.ootii.AI.Controllers
                 // Combine our control velocity with momentum
                 Vector3 lAirVelocity = Vector3.zero;
 
-                // While in the air, we have a speed based the max of our momentum or control speed
+                // When on the ground, continue with our momenum
                 if (lState.IsGrounded)
                 {
+                    // If we're pulling back from the avatar's forward direction, 
+                    // stop the movement
+                    if (Mathf.Abs(mController.State.InputFromAvatarAngle) > 140)
+                    {
+                        lAirSpeed = 0f;
+                    }
+
                     lAirVelocity += mController.transform.forward * lAirSpeed;
                 }
+                // While in the air, we have a speed based the max of our momentum or control speed
                 else
                 {
                     // If we allow control, let the player determine the direction
@@ -743,7 +797,10 @@ namespace com.ootii.AI.Controllers
                 if (lState.IsGrounded)
                 {
                     //mAngularVelocity.y = lState.InputFromAvatarAngle * mController.RotationSpeed;
-                    mAngularVelocity.y = (lState.InputFromAvatarAngle / 90f) * mController.RotationSpeed;
+                    if (Mathf.Abs(mController.State.InputFromAvatarAngle) < 140)
+                    {
+                        mAngularVelocity.y = (lState.InputFromAvatarAngle / 90f) * mController.RotationSpeed;
+                    }
                 }
                 // If we're in the air, we will limit how much rotation can actually happen
                 else

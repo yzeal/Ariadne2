@@ -15,6 +15,7 @@ namespace com.ootii.AI.Controllers
     /// This is a simple motion that shows a sliding animation when we're 
     /// sliding down a slope that exceeds our mininum slide condition.
     /// </summary>
+    [MotionTooltip("This motion is a simple pose used when the avatar starts to slide down a ramp.")]
     public class Slide : MotionControllerMotion
     {
         // Enum values for the motion
@@ -27,6 +28,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mRotationSpeed = 180f;
+
+        [MotionTooltip("Determines how quickly the avatar rotates to face the downward slope. Set the value to 0 to not rotate.")]
         public float RotationSpeed
         {
             get { return mRotationSpeed; }
@@ -72,7 +75,6 @@ namespace com.ootii.AI.Controllers
         {
             if (!mIsStartable) { return false; }
             if (!mController.IsGrounded) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
             if (mController.State.InputMagnitudeTrend.Value > 0f) { return false; }
             if (mController.State.GroundAngle < mController.MinSlideAngle) { return false; }
 
@@ -90,7 +92,6 @@ namespace com.ootii.AI.Controllers
             if (mIsActivatedFrame) { return true; }
 
             if (!mController.IsGrounded) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
             if (mController.State.InputMagnitudeTrend.Value > 0f) { return false; }
             if (mController.State.GroundAngle < mController.MinSlideAngle) { return false; }
 

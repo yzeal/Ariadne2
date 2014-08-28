@@ -15,6 +15,8 @@ namespace com.ootii.AI.Controllers
     /// This is a simple punch used to test using different
     /// motions at the same time with MotionLayers.
     /// </summary>
+    [MotionTooltip("A simple motion used to test motions on different layers. When put on a seperate layer, " +
+                   "this motion will cause the avatar to punch with his left hand.")]
     public class Punch : MotionControllerMotion
     {
         // Enum values for the motion

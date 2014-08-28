@@ -126,7 +126,7 @@ namespace com.ootii.Input
 
         private static bool mIsXboxControllerEnabled = true;
 
-        private static float mMouseSensativity = 1f;
+        private static float mMouseSensativity = 2f;
 
         private static float mViewX = 0f;
         private static float mViewY = 0f;
@@ -192,6 +192,16 @@ namespace com.ootii.Input
         }
 
         /// <summary>
+        /// Test if a specific key is pressed
+        /// </summary>
+        /// <param name="rKey"></param>
+        /// <returns></returns>
+        public static bool IsJustPressed(KeyCode rKey)
+        {
+            return UnityEngine.Input.GetKeyUp(rKey);
+        }
+
+        /// <summary>
         /// Tests if a specific action is pressed. This is used for continuous checking.
         /// </summary>
         /// <param name="rAction">Action to test for</param>
@@ -202,12 +212,18 @@ namespace com.ootii.Input
             // perspective for targeting
             if (rAction == "Aiming")
             {
+				if(GlobalVariables.Instance != null && GlobalVariables.Instance.crawling){
+					return false;
+				}
                 if (UnityEngine.Input.GetMouseButton(2)) { return true; }
                 if (mIsXboxControllerEnabled && UnityEngine.Input.GetAxis("WXLeftTrigger") > 0.5f) { return true; }
             }
             // Determines if the character should sprint forward
             else if (rAction == "Sprint")
             {
+				if(GlobalVariables.Instance != null && GlobalVariables.Instance.crawling){
+					return false;
+				}
                 if (UnityEngine.Input.GetKey(KeyCode.LeftShift)) { return true; }
                 if (mIsXboxControllerEnabled && UnityEngine.Input.GetButton("WXButton3")) { return true; }
             }
@@ -257,6 +273,10 @@ namespace com.ootii.Input
             }
             else if (rAction == "Aiming")
             {
+				if(GlobalVariables.Instance != null && GlobalVariables.Instance.crawling){
+					return false;
+				}
+
                 if (UnityEngine.Input.GetMouseButton(2)) 
                 {
                     if (!mOldLTrigger)
@@ -280,25 +300,35 @@ namespace com.ootii.Input
             }
             else if (rAction == "Release")
             {
+				if(GlobalVariables.Instance != null && GlobalVariables.Instance.crawling){
+					return false;
+				}
+
                 if (UnityEngine.Input.GetKeyDown(KeyCode.LeftShift)) { return true; }
                 if (mIsXboxControllerEnabled && UnityEngine.Input.GetButtonDown("WXButton3")) { return true; }
             }
             else if (rAction == "ChangeStance")
             {
-                if (UnityEngine.Input.GetKeyDown(KeyCode.T)) { return true; }
+//                if (UnityEngine.Input.GetKeyDown(KeyCode.T)) { return true; }
 
-                if (mIsXboxControllerEnabled && UnityEngine.Input.GetAxis("WXRightTrigger") > 0.5f)
-                {
-                    if (!mOldRTrigger)
-                    {
-                        mOldRTrigger = true;
-                        return true;
-                    }
-                }
-                else
-                {
-                    mOldRTrigger = false;
-                }
+				if (GlobalVariables.Instance != null && GlobalVariables.Instance.toggleCrawl) {GlobalVariables.Instance.toggleCrawl = false; return true;}
+
+//				if(GlobalVariables.Instance != null && GlobalVariables.Instance.crawling){
+//					return false;
+//				}
+
+//                if (mIsXboxControllerEnabled && UnityEngine.Input.GetAxis("WXRightTrigger") > 0.5f)
+//                {
+//                    if (!mOldRTrigger)
+//                    {
+//                        mOldRTrigger = true;
+//                        return true;
+//                    }
+//                }
+//                else
+//                {
+//                    mOldRTrigger = false;
+//                }
             }
             else if (rAction == "PrimaryAttack")
             {

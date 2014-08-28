@@ -140,19 +140,19 @@ public class MotionControllerEditor : Editor
         GUILayout.Space(10);
 
         SerializedProperty lUseInputSP = mMotionControllerSO.FindProperty("_UseInput");
-        bool lUseInput = EditorGUILayout.Toggle("Use Input", lUseInputSP.boolValue);
+        bool lUseInput = EditorGUILayout.Toggle(new GUIContent("Use Input", "Determines if this avatar will respond to input from the user."), lUseInputSP.boolValue);
 
         SerializedProperty lRigTransformSP = mMotionControllerSO.FindProperty("_CameraTransform");
-        Transform lRigTransform = EditorGUILayout.ObjectField("Camera Transform", lRigTransformSP.objectReferenceValue, typeof(Transform), true) as Transform;
+        Transform lRigTransform = EditorGUILayout.ObjectField(new GUIContent("Camera Transform", "Camera that this avatar will manage."), lRigTransformSP.objectReferenceValue, typeof(Transform), true) as Transform;
 
         //SerializedProperty lRigSP = mMotionControllerSO.FindProperty("_CameraRig");
         //CameraRig lRig = EditorGUILayout.ObjectField("Camera Rig", lRigSP.objectReferenceValue, typeof(CameraRig), true) as CameraRig;
 
         SerializedProperty lRigOffsetSP = mMotionControllerSO.FindProperty("_CameraRigOffset");
-        Vector3 lRigOffset = EditorGUILayout.Vector3Field("Camera Offset", lRigOffsetSP.vector3Value);
+        Vector3 lRigOffset = EditorGUILayout.Vector3Field(new GUIContent("Camera Offset", "Offset from avatar's position the camera will look at. Typically the head."), lRigOffsetSP.vector3Value);
 
         EditorGUILayout.BeginHorizontal();
-        EditorGUILayout.LabelField("Camera VLerp");
+        EditorGUILayout.LabelField(new GUIContent("Camera VLerp", "Multiplication factor used to modify the camera's vertical speed."));
 
         if (Screen.width <= 332)
         {
@@ -172,19 +172,25 @@ public class MotionControllerEditor : Editor
         EditorGUILayout.EndHorizontal();
 
         SerializedProperty lGravitySP = mMotionControllerSO.FindProperty("_Gravity");
-        Vector3 lGravity = EditorGUILayout.Vector3Field("Gravity", lGravitySP.vector3Value);
+        Vector3 lGravity = EditorGUILayout.Vector3Field(new GUIContent("Gravity", "Gravity this avatar will use."), lGravitySP.vector3Value);
 
         SerializedProperty lForwardBumperSP = mMotionControllerSO.FindProperty("_ForwardBumper");
-        Vector3 lForwardBumper = EditorGUILayout.Vector3Field("Forward Bumper", lForwardBumperSP.vector3Value);
+        Vector3 lForwardBumper = EditorGUILayout.Vector3Field(new GUIContent("Forward Bumper", "Projects a ray forward to test for something blocking. Set to 0 to disable."), lForwardBumperSP.vector3Value);
+
+        SerializedProperty lForwardBumperBlendSP = mMotionControllerSO.FindProperty("_ForwardBumperBlendAngle");
+        float lForwardBumperBlend = EditorGUILayout.FloatField(new GUIContent("Forward Bumper Blend Angle", "Angle to blend movement when blocked. Assume a head on collision is 0 angle."), lForwardBumperBlendSP.floatValue);
 
         SerializedProperty lMassSP = mMotionControllerSO.FindProperty("_Mass");
-        float lMass = EditorGUILayout.FloatField("Mass", lMassSP.floatValue);
+        float lMass = EditorGUILayout.FloatField(new GUIContent("Mass", "Mass of the avatar used for physics calculations like jumping"), lMassSP.floatValue);
 
         SerializedProperty lMinSlideAngleSP = mMotionControllerSO.FindProperty("_MinSlideAngle");
-        float lMinSlideAngle = EditorGUILayout.FloatField("Min Slide Angle", lMinSlideAngleSP.floatValue);
+        float lMinSlideAngle = EditorGUILayout.FloatField(new GUIContent("Min Slide Angle", "Minimum angle the avatar will start sliding down."), lMinSlideAngleSP.floatValue);
+
+        SerializedProperty lMaxSpeedSP = mMotionControllerSO.FindProperty("_MaxSpeed");
+        float lMaxSpeed = EditorGUILayout.FloatField(new GUIContent("Max Speed", "Determines how quickly the avatar can move in meters per second."), lMaxSpeedSP.floatValue);
 
         SerializedProperty lRotationSpeedSP = mMotionControllerSO.FindProperty("_RotationSpeed");
-        float lRotationSpeed = EditorGUILayout.FloatField("Rotation Speed", lRotationSpeedSP.floatValue);
+        float lRotationSpeed = EditorGUILayout.FloatField(new GUIContent("Rotation Speed", "Determines how quickly the avatar can rotate in degrees per second."), lRotationSpeedSP.floatValue);
 
         // Show the Layers
         GUILayout.Space(10);
@@ -262,8 +268,10 @@ public class MotionControllerEditor : Editor
             lIsDirty = (lIsDirty || (lRigLerpDownSP.floatValue != lRigLerpDown));
             lIsDirty = (lIsDirty || (lGravitySP.vector3Value != lGravity));
             lIsDirty = (lIsDirty || (lForwardBumperSP.vector3Value != lForwardBumper));
+            lIsDirty = (lIsDirty || (lForwardBumperBlendSP.floatValue != lForwardBumperBlend));
             lIsDirty = (lIsDirty || (lMassSP.floatValue != lMass));
             lIsDirty = (lIsDirty || (lMinSlideAngleSP.floatValue != lMinSlideAngle));
+            lIsDirty = (lIsDirty || (lMaxSpeedSP.floatValue != lMaxSpeed));
             lIsDirty = (lIsDirty || (lRotationSpeedSP.floatValue != lRotationSpeed));
 
             if (lIsDirty)
@@ -277,8 +285,10 @@ public class MotionControllerEditor : Editor
                 lRigLerpDownSP.floatValue = lRigLerpDown;
                 lGravitySP.vector3Value = lGravity;
                 lForwardBumperSP.vector3Value = lForwardBumper;
+                lForwardBumperBlendSP.floatValue = lForwardBumperBlend;
                 lMassSP.floatValue = lMass;
                 lMinSlideAngleSP.floatValue = lMinSlideAngle;
+                lMaxSpeedSP.floatValue = lMaxSpeed;
                 lRotationSpeedSP.floatValue = lRotationSpeed;
             }
         }
@@ -471,22 +481,43 @@ public class MotionControllerEditor : Editor
         MotionControllerMotion lMotion = lLayer.Motions[rMotionIndex];
         if (lMotion == null) { return; }
 
-        EditorGUILayout.LabelField("Type", lMotion.GetType().Name);
-        EditorGUILayout.LabelField("Namespace", lMotion.GetType().Namespace);
+        object[] lMotionAttributes = lMotion.GetType().GetCustomAttributes(typeof(MotionTooltipAttribute), true);
+        foreach (MotionTooltipAttribute lAttribute in lMotionAttributes)
+        {
+            EditorGUILayout.HelpBox(lAttribute.Tooltip, MessageType.None, true);
+        }
+
+        EditorGUILayout.LabelField(new GUIContent("Type", "Identifies the type of motion."), new GUIContent(lMotion.GetType().Name));
+        EditorGUILayout.LabelField(new GUIContent("Namespace", "Specifies the container the motion belongs to."), new GUIContent(lMotion.GetType().Namespace));
 
         // Force the name at the top
-        string lMotionName = EditorGUILayout.TextField("Name", lMotion.Name);
+        string lMotionName = EditorGUILayout.TextField(new GUIContent("Name", "Friendly name of the motion that can be searched for."), lMotion.Name);
         if (lMotionName != lMotion.Name)
         {
             lIsDirty = true;
             lMotion.Name = lMotionName;
         }
 
+        // Reactivation delay
+        float lReactivationDelay = EditorGUILayout.FloatField(new GUIContent("Reactivation Delay", "Once deactivated, seconds before activation can occur again."), lMotion.ReactivationDelay);
+        if (lReactivationDelay != lMotion.ReactivationDelay)
+        {
+            lIsDirty = true;
+            lMotion.ReactivationDelay = lReactivationDelay;
+        }
+        
         // Render out the accessable properties using reflection
         PropertyInfo[] lProperties = lMotion.GetType().GetProperties();
         foreach (PropertyInfo lProperty in lProperties)
         {
             if (!lProperty.CanWrite) { continue; }
+
+            string lTooltip = "";
+            object[] lAttributes = lProperty.GetCustomAttributes(typeof(MotionTooltipAttribute), true);
+            foreach (MotionTooltipAttribute lAttribute in lAttributes)
+            {
+                lTooltip = lAttribute.Tooltip;
+            }
 
             // Unfortunately Binding flags don't seem to be working. So,
             // we need to ensure we don't include base properties
@@ -508,7 +539,7 @@ public class MotionControllerEditor : Editor
             // Based on the type, show an edit field
             if (lProperty.PropertyType == typeof(string))
             {
-                string lNewValue = EditorGUILayout.TextField(lProperty.Name, (string)lOldValue);
+                string lNewValue = EditorGUILayout.TextField(new GUIContent(lProperty.Name, lTooltip), (string)lOldValue);
                 if (lNewValue != (string)lOldValue)
                 {
                     lIsDirty = true;
@@ -517,7 +548,7 @@ public class MotionControllerEditor : Editor
             }
             else if (lProperty.PropertyType == typeof(int))
             {
-                int lNewValue = EditorGUILayout.IntField(lProperty.Name, (int)lOldValue);
+                int lNewValue = EditorGUILayout.IntField(new GUIContent(lProperty.Name, lTooltip), (int)lOldValue);
                 if (lNewValue != (int)lOldValue)
                 {
                     lIsDirty = true;
@@ -526,7 +557,7 @@ public class MotionControllerEditor : Editor
             }
             else if (lProperty.PropertyType == typeof(float))
             {
-                float lNewValue = EditorGUILayout.FloatField(lProperty.Name, (float)lOldValue);
+                float lNewValue = EditorGUILayout.FloatField(new GUIContent(lProperty.Name, lTooltip), (float)lOldValue);
                 if (lNewValue != (float)lOldValue)
                 {
                     lIsDirty = true;
@@ -535,7 +566,7 @@ public class MotionControllerEditor : Editor
             }
             else if (lProperty.PropertyType == typeof(bool))
             {
-                bool lNewValue = EditorGUILayout.Toggle(lProperty.Name, (bool)lOldValue);
+                bool lNewValue = EditorGUILayout.Toggle(new GUIContent(lProperty.Name, lTooltip), (bool)lOldValue);
                 if (lNewValue != (bool)lOldValue)
                 {
                     lIsDirty = true;
@@ -544,7 +575,7 @@ public class MotionControllerEditor : Editor
             }
             else if (lProperty.PropertyType == typeof(Vector2))
             {
-                Vector2 lNewValue = EditorGUILayout.Vector2Field(lProperty.Name, (Vector2)lOldValue);
+                Vector2 lNewValue = EditorGUILayout.Vector2Field(new GUIContent(lProperty.Name, lTooltip), (Vector2)lOldValue);
                 if (lNewValue != (Vector2)lOldValue)
                 {
                     lIsDirty = true;
@@ -553,7 +584,7 @@ public class MotionControllerEditor : Editor
             }
             else if (lProperty.PropertyType == typeof(Vector3))
             {
-                Vector3 lNewValue = EditorGUILayout.Vector3Field(lProperty.Name, (Vector3)lOldValue);
+                Vector3 lNewValue = EditorGUILayout.Vector3Field(new GUIContent(lProperty.Name, lTooltip), (Vector3)lOldValue);
                 if (lNewValue != (Vector3)lOldValue)
                 {
                     lIsDirty = true;

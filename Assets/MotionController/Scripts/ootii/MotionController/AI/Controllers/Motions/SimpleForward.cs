@@ -15,6 +15,8 @@ namespace com.ootii.AI.Controllers
     /// Simple blend that allows the avatar to walk or run forward.
     /// There is no rotation, pivoting, etc.
     /// </summary>
+    [MotionTooltip("A forward walk/run blend that allows the avatar to move. In this case, the avatar would " +
+                   "not typically rotate towards the camera. Use this for basic movement with the included camera.")]
     public class SimpleForward : MotionControllerMotion
     {
         // Enum values for the motion
@@ -27,21 +29,12 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mRotationAcceleration = 12.0f;
+
+        [MotionTooltip("Determines how quickly the avatar will start rotating or stop rotating.")]
         public float RotationAcceleration
         {
             get { return mRotationAcceleration; }
             set { mRotationAcceleration = value; }
-        }
-
-        /// <summary>
-        /// Minimum 
-        /// </summary>
-        [SerializeField]
-        protected float mMinWallSlideAngle = 30f;
-        public float MinWallSlideInputAngle
-        {
-            get { return mMinWallSlideAngle; }
-            set { mMinWallSlideAngle = value; }
         }
 
         /// <summary>
@@ -93,19 +86,13 @@ namespace com.ootii.AI.Controllers
             // attempt to move the avatar with some input/AI.
             if (!mIsStartable) { return false; }
             if (!mController.IsGrounded) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
 
             ControllerState lState = mController.State;
+            //Debug.Log("SimpleForward.TestActivate() x:" + lState.InputX + " y:" + lState.InputY);
             if (lState.InputMagnitudeTrend.Value < 0.1f) { return false; }
-            if (lState.InputX == 0 && lState.InputY < 0) { return false; }
+            if (lState.InputX == 0 && lState.InputY == 0) { return false; }
 
             if (lState.Stance != EnumControllerStance.TRAVERSAL) { return false; }
-
-            if (lState.IsForwardPathBlocked)
-            {
-                if (InputManager.ViewX == 0 && Mathf.Abs(lState.InputFromAvatarAngle) < mMinWallSlideAngle) { return false; }
-                if (Mathf.Abs(InputManager.MovementX) * 180f < mMinWallSlideAngle && Mathf.Abs(InputManager.ViewX) * 180f < mMinWallSlideAngle) { return false; }
-            }
 
             return true;
         }
@@ -120,18 +107,11 @@ namespace com.ootii.AI.Controllers
             if (mIsActivatedFrame) { return true; }
 
             if (!mController.IsGrounded) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
 
             ControllerState lState = mController.State;
             if (lState.InputMagnitudeTrend.Average == 0f) { return false; }
-            if (lState.InputX == 0 && lState.InputY < 0) { return false; }
+            if (lState.InputX == 0 && lState.InputY == 0) { return false; }
             if (lState.Stance != EnumControllerStance.TRAVERSAL) { return false; }
-
-            if (lState.IsForwardPathBlocked)
-            {
-                if (InputManager.ViewX == 0 && Mathf.Abs(lState.InputFromAvatarAngle) < mMinWallSlideAngle) { return false; }
-                if (Mathf.Abs(InputManager.MovementX) * 180f < mMinWallSlideAngle && Mathf.Abs(InputManager.ViewX) * 180f < mMinWallSlideAngle) { return false; }
-            }
 
             return true;
         }
@@ -143,6 +123,8 @@ namespace com.ootii.AI.Controllers
         /// <param name="rPrevMotion">Motion that this motion is taking over from</param>
         public override bool Activate(MotionControllerMotion rPrevMotion)
         {
+            mYaw = 0f;
+
             // Store the last camera mode and force it to a fixed view.
             // We do this to always keep the camera behind the player
             if (mController.UseInput && mController.CameraRig != null)
@@ -170,6 +152,18 @@ namespace com.ootii.AI.Controllers
                 return;
             }
 
+            // If we're blocked, we're going to modify the speed
+            // in order to blend into and out of a stop
+            if (mController.State.IsForwardPathBlocked)
+            {
+                float lAngle = Vector3.Angle(mController.State.ForwardPathBlockNormal, mController.transform.forward);
+
+                float lDiff = 180f - lAngle;
+                float lSpeed = mController.State.InputMagnitudeTrend.Value * (lDiff / mController.ForwardBumperBlendAngle);
+
+                mController.State.InputMagnitudeTrend.Replace(lSpeed);
+            }
+
             // Determine movement and rotation
             DetermineAngularVelocity();
             DetermineVelocity();
@@ -183,29 +177,29 @@ namespace com.ootii.AI.Controllers
             float lView = InputManager.ViewX;
             float lMovement = InputManager.MovementX;
 
-            // If there is no view or no view AND no movement
-            if (lView != 0f || lMovement == 0f)
-            {
-                // Get the desired rotation amount
-                float lYawTarget = lView * mController.RotationSpeed;
+            float lViewTarget = 0f;
 
-                // We want to work our way to the goal smoothly
-                if (mYaw < lYawTarget)
-                {
-                    mYaw += mRotationAcceleration;
-                    if (mYaw > lYawTarget) { mYaw = lYawTarget; }
-                }
-                else if (mYaw > lYawTarget)
-                {
-                    mYaw -= mRotationAcceleration;
-                    if (mYaw < lYawTarget) { mYaw = lYawTarget; }
-                }
+            // If there is no view or no view AND no movement
+            if (lView != 0f) // || lMovement == 0f)
+            {
+                lViewTarget = lView * mController.RotationSpeed;
             }
             // if we have movement, let it control the view
-            else
-            { 
-                lView = InputManager.MovementX;
-                mYaw = (mController.State.InputFromAvatarAngle / 90f) * mController.RotationSpeed;
+            else if (lMovement != 0f)
+            {
+                lViewTarget = lMovement * mController.RotationSpeed;
+            }
+
+            // We want to work our way to the goal smoothly
+            if (mYaw < lViewTarget)
+            {
+                mYaw += mRotationAcceleration;
+                if (mYaw > lViewTarget) { mYaw = lViewTarget; }
+            }
+            else if (mYaw > lViewTarget)
+            {
+                mYaw -= mRotationAcceleration;
+                if (mYaw < lViewTarget) { mYaw = lViewTarget; }
             }
 
             // Assign the current rotation
@@ -225,7 +219,7 @@ namespace com.ootii.AI.Controllers
             rVelocityDelta.x = 0f;
 
             // In this motion, there is mo moving backwards
-            if (rVelocityDelta.z < 0f)
+            if (mController.State.InputY > -0.2f && rVelocityDelta.z < 0f)
             {
                 rVelocityDelta.z = 0f;
             }

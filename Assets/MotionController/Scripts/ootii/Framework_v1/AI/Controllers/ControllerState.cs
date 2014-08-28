@@ -67,6 +67,11 @@ namespace com.ootii.AI.Controllers
         public bool IsForwardPathBlocked;
 
         /// <summary>
+        /// When blocked by an object, this holds the normal of that object.
+        /// </summary>
+        public Vector3 ForwardPathBlockNormal;
+
+        /// <summary>
         /// Determines if the avatar is currently on the ground
         /// </summary>
         public bool IsGrounded;
@@ -150,12 +155,19 @@ namespace com.ootii.AI.Controllers
             // Update the members of the states array. We have to do this
             // so 'prev' doesn't accidentally hold a reference sot the array in 'current'
             rPrev.AnimatorStates = lAnimatorStates;
-            for (int i = 0; i < lAnimatorStates.Length; i++)
+            if (rPrev.AnimatorStates != null)
             {
-                rPrev.AnimatorStates[i].MotionPhase = rCurrent.AnimatorStates[i].MotionPhase;
-                rPrev.AnimatorStates[i].AutoClearMotionPhase = rCurrent.AnimatorStates[i].AutoClearMotionPhase;
-                rPrev.AnimatorStates[i].StateInfo = rCurrent.AnimatorStates[i].StateInfo;
-                rPrev.AnimatorStates[i].TransitionInfo = rCurrent.AnimatorStates[i].TransitionInfo;
+                int lCount = lAnimatorStates.Length;
+                for (int i = 0; i < lCount; i++)
+                {
+                    //rPrev.AnimatorStates[i] = rCurrent.AnimatorStates[i];
+
+                    //TT
+                    rPrev.AnimatorStates[i].MotionPhase = rCurrent.AnimatorStates[i].MotionPhase;
+                    rPrev.AnimatorStates[i].AutoClearMotionPhase = rCurrent.AnimatorStates[i].AutoClearMotionPhase;
+                    rPrev.AnimatorStates[i].StateInfo = rCurrent.AnimatorStates[i].StateInfo;
+                    rPrev.AnimatorStates[i].TransitionInfo = rCurrent.AnimatorStates[i].TransitionInfo;
+                }
             }
 
             // Initialize the object we're attached to. Don't clear
@@ -165,7 +177,6 @@ namespace com.ootii.AI.Controllers
             rCurrent.SupportRotation = Quaternion.identity;
 
             // Initialize the ground information
-            rCurrent.IsForwardPathBlocked = false;
             rCurrent.IsGrounded = false;
             rCurrent.GroundAngle = 0f;
             rCurrent.GroundNormal = Vector3.up;

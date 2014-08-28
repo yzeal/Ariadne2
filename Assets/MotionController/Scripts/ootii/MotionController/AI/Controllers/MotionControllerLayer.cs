@@ -19,16 +19,6 @@ namespace com.ootii.AI.Controllers
     public class MotionControllerLayer : BaseObject
     {
         /// <summary>
-        /// Friendly name for the layer
-        /// </summary>
-        public string _Name = "";
-        public string Name
-        {
-            get { return _Name; }
-            set { _Name = value; }
-        }
-
-        /// <summary>
         /// Index in the list of motion layers that this layer represents.
         /// </summary>
         private int mIndex = 0;
@@ -307,6 +297,8 @@ namespace com.ootii.AI.Controllers
             // If it's not, we know we are simply running it.
             if (mActiveMotion == null || mActiveMotion.IsInterruptible)
             {
+                bool lIsQueued = false;
+
                 // Cycle through the motions to determine which ones were not
                 // active and should be. We'll take the motion with the highest priority
                 for (int i = 0; i < mMotions.Count; i++)
@@ -317,9 +309,14 @@ namespace com.ootii.AI.Controllers
                     // Don't test if the motion is not enabled
                     if (!mMotions[i].IsEnabled) { continue; }
 
+                    // If we haven't gone past the reactivation delay, move one
+                    if (mMotions[i].ReactivationDelay > 0 && mMotions[i].DeactivationTime + mMotions[i].ReactivationDelay > Time.time) { continue; }
+
                     // If we're to force the motion, don't check others
                     if (mMotions[i].QueueActivation)
                     {
+                        lIsQueued = true;
+
                         lPriorityIndex = i;
                         lPriorityValue = mMotions[i].Priority;
 
@@ -342,7 +339,7 @@ namespace com.ootii.AI.Controllers
                 {
                     // Ensure the motion will allow the interruption and
                     // shuts down as needed. If not, we cancel the upcoming motion.
-                    if (mActiveMotion != null)
+                    if (!lIsQueued && mActiveMotion != null)
                     {
                         if (mActiveMotion.Priority > lPriorityValue)
                         {
@@ -359,6 +356,7 @@ namespace com.ootii.AI.Controllers
                     {
                         mMotions[lPriorityIndex].Activate(mActiveMotion);
 
+                        if (mActiveMotion != null && mActiveMotion != mMotions[lPriorityIndex]) { mActiveMotion.Deactivate(); }
                         mActiveMotion = mMotions[lPriorityIndex];
                         mActiveMotionDuration = 0f;
                     }
@@ -448,6 +446,21 @@ namespace com.ootii.AI.Controllers
                 }
             }
         }
+        
+        /// <summary>
+        /// Allow the layer to render debug info
+        /// </summary>
+        public void OnDrawGizmos()
+        {
+            // Send the state change to all active motions
+            for (int i = 0; i < mMotions.Count; i++)
+            {
+                if (mMotions[i].IsActive)
+                {
+                    mMotions[i].OnDrawGizmos();
+                }
+            }
+        }
 
         /// <summary>
         /// Processes the motion definitions and updates the motions to match
@@ -507,7 +520,8 @@ namespace com.ootii.AI.Controllers
                     lMotion.DeserializeMotion(lDefinition);
 
                     // Reset the priority based on the default
-                    if (lPriority > 0 && lMotion.Priority == 0f) { lMotion.Priority = lPriority; }
+                    if (lPriority > 0) { lMotion.Priority = lPriority; }
+                    if (lMotion is CasualIdle) { lMotion.Priority = lPriority; }
 
                     // We re-serialize the motion incase there was a change. If the
                     // type changed or some other value, we want the updated definition

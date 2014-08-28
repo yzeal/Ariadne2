@@ -1,5 +1,8 @@
+//#define MC_ENABLE_PROFILING 
+
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using com.ootii.Base;
 using com.ootii.Cameras;
@@ -36,6 +39,16 @@ namespace com.ootii.AI.Controllers
         /// Keeps us from reallocating each frame
         /// </summary>
         private static RaycastHit sRaycastHitInfo = new RaycastHit();
+
+        /// <summary>
+        /// Layer the owner is attached to so we can ignore it when it
+        /// </summary>
+        public int _PlayerLayer = 8;
+        public int PlayerLayer
+        {
+            get { return _PlayerLayer; }
+            set { _PlayerLayer = value; }
+        }
 
         /// <summary>
         /// Determines if the controller used input from the keyboard, game
@@ -86,7 +99,7 @@ namespace com.ootii.AI.Controllers
         public bool MeleeStanceEnabled
         {
             get { return _MeleeStanceEnabled; }
-            set { MeleeStanceEnabled = value; }
+            set { _MeleeStanceEnabled = value; }
         }
 
         /// <summary>
@@ -192,6 +205,18 @@ namespace com.ootii.AI.Controllers
         }
 
         /// <summary>
+        /// When the forward bumper hits something, this is the minimum
+        /// angle the character's forward needs to be from the wall's normal
+        /// before the player is stopped.
+        /// </summary>
+        public float _ForwardBumperBlendAngle = 40f;
+        public float ForwardBumperBlendAngle
+        {
+            get { return _ForwardBumperBlendAngle; }
+            set { _ForwardBumperBlendAngle = value; }
+        }
+
+        /// <summary>
         /// Sets the height of the collider that is part of the
         /// controller. The key is to keep it at the same base.
         /// </summary>
@@ -221,6 +246,16 @@ namespace com.ootii.AI.Controllers
         }
 
         /// <summary>
+        /// Defines the max speed of the actor when in a full run
+        /// </summary>
+        public float _MaxSpeed = 7f;
+        public float MaxSpeed
+        {
+            get { return _MaxSpeed; }
+            set { _MaxSpeed = value; }
+        }
+
+        /// <summary>
         /// Determines how quickly the character is able to rotate
         /// </summary>
         public float _RotationSpeed = 360f;
@@ -231,20 +266,14 @@ namespace com.ootii.AI.Controllers
         }
 
         /// <summary>
-        /// Determines if the avatar is being forced to a specific
-        /// position. If so, we skip a lot of logic
+        /// When simulating input, this gives us a velocity 
+        /// the controller uses to move with. The controller converts this information
+        /// into psuedo input values to calculate movement.
         /// </summary>
-        public bool IsMovingToTarget
+        protected Vector3 mTargetVelocity = Vector3.zero;
+        public Vector3 TargetVelocity
         {
-            get
-            {
-                if (mMoveTarget.sqrMagnitude != 0f)
-                {
-                    return true;
-                }
-
-                return false;
-            }
+            get { return mTargetVelocity; }
         }
 
         /// <summary>
@@ -252,10 +281,21 @@ namespace com.ootii.AI.Controllers
         /// the controller to. The controller converts this information
         /// into psuedo input values to calculate movement.
         /// </summary>
-        protected Vector3 mPositionTarget = Vector3.zero;
-        public Vector3 PositionTarget
+        protected Vector3 mTargetPosition = Vector3.zero;
+        public Vector3 TargetPosition
         {
-            get { return mPositionTarget; }
+            get { return mTargetPosition; }
+        }
+
+        /// <summary>
+        /// When simulating input, this gives us the speed at which we
+        /// should move towards the PositionTarget. Think of this as how
+        /// hard we push the gamepad stick forward.
+        /// </summary>
+        protected float mTargetNormalizedSpeed = 1f;
+        public float TargetNormalizedSpeed
+        {
+            get { return mTargetNormalizedSpeed; }
         }
 
         /// <summary>
@@ -263,10 +303,10 @@ namespace com.ootii.AI.Controllers
         /// the controller to. The controller converts this information
         /// into psuedo input values to calculate rotation.
         /// </summary>
-        protected Quaternion mRotationTarget = Quaternion.identity;
-        public Quaternion RotationTarget
+        protected Quaternion mTargetRotation = Quaternion.identity;
+        public Quaternion TargetRotation
         {
-            get { return mRotationTarget; }
+            get { return mTargetRotation; }
         }
 
         /// <summary>
@@ -330,7 +370,7 @@ namespace com.ootii.AI.Controllers
                 // First, determine the height from the ground. To do this, ignore
                 // the player layer (layer index 8). Invert the bitmask so we get
                 // everything EXCEPT the player
-                int lPlayerLayerMask = 1 << 8;
+                int lPlayerLayerMask = 1 << _PlayerLayer;
                 lPlayerLayerMask = ~lPlayerLayerMask;
 
                 return lPlayerLayerMask;
@@ -415,11 +455,17 @@ namespace com.ootii.AI.Controllers
         /// Initial collider height used to base the collisions on
         /// </summary>
         protected float mBaseColliderHeight = 1.8f;
+		protected float mBaseColliderRadius = 0.34f;
         public float BaseColliderHeight
         {
             get { return mBaseColliderHeight; }
             set { mBaseColliderHeight = value; }
         }
+		public float BaseColliderRadius
+		{
+			get { return mBaseColliderRadius; }
+			set { mBaseColliderRadius = value; }
+		}
 
         /// <summary>
         /// Starting collider center used to base the collider at
@@ -492,10 +538,10 @@ namespace com.ootii.AI.Controllers
         /// <summary>
         /// Tracks how long the update process is taking
         /// </summary>
-        private static Utilities.Profiler mProfiler = new Utilities.Profiler("MotionController");
-        public static Utilities.Profiler Profiler
+        private static Utilities.Profiler mUpdateProfiler = new Utilities.Profiler("MotionController");
+        public static Utilities.Profiler UpdateProfiler
         {
-            get { return mProfiler; }
+            get { return mUpdateProfiler; }
         }
 
         /// <summary>
@@ -509,23 +555,6 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [HideInInspector]
         public Dictionary<string, int> AnimatorStateIDs = new Dictionary<string, int>();
-
-        /// <summary>
-        /// Target we'll move the avatar towards. This property will cause the
-        /// avatar to ignore root-motion, velocity, and acceleration.
-        /// </summary>
-        private Vector3 mMoveTarget = Vector3.zero;
-
-        /// <summary>
-        /// The velocity that the avatar will use when smooth moving towards
-        /// the move target.
-        /// </summary>
-        private Vector3 mMoveTargetVelocity = Vector3.zero;
-
-        /// <summary>
-        /// Length of time it should take for the avatar to reach the move target
-        /// </summary>
-        private float mMoveTargetTime = 0.0f;
 
         /// <summary>
         /// Flag to let us know if the rotation and movement
@@ -598,27 +627,6 @@ namespace com.ootii.AI.Controllers
                 }
             }
 
-            //// More of a safety check to ensure motions and motion
-            //// definitions are intialized correctly
-            //if (MotionLayers != null)
-            //{
-            //    // Initialize our objects with each of the animator layers
-            //    for (int i = 0; i < MotionLayers.Count; i++)
-            //    {
-            //        // Tie the index of the layer to the order
-            //        MotionLayers[i].Index = i;
-
-            //        // Associate the layer to the child motions
-            //        for (int j = 0; j < MotionLayers[i].Motions.Count; j++)
-            //        {
-            //            MotionControllerMotion lMotion = MotionLayers[i].Motions[j];
-
-            //            lMotion.Controller = this;
-            //            lMotion.MotionLayer = MotionLayers[i];
-            //        }
-            //    }
-            //}
-
             // Load the animator state and transition hash IDs
             LoadAnimatorData();
         }
@@ -629,10 +637,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         public void Update()
         {
-            if (mAnimator == null) { return; }
-
             // Start the timer for tracking performance
-            mProfiler.Start();
+            mUpdateProfiler.Start();
 
             // Determines if we wait for a trend to stop before
             // passing information to the animator
@@ -641,26 +647,54 @@ namespace com.ootii.AI.Controllers
             // Reset our movement flag
             mMovementApplied = false;
 
-            // Shift the current state to previous and initialize the current
+            // 1. Shift the current state to previous and initialize the current
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Start("01");
+#endif
             ControllerState.Shift(ref mState, ref mPrevState);
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Stop("01");
+#endif
 
-            // Update the animator state and transition information so it can by
+            // 2. Update the animator state and transition information so it can by
             // used by the motions
-            for (int i = 0; i < mState.AnimatorStates.Length; i++)
-            {
-                mState.AnimatorStates[i].StateInfo = mAnimator.GetCurrentAnimatorStateInfo(i);
-                mState.AnimatorStates[i].TransitionInfo = mAnimator.GetAnimatorTransitionInfo(i);
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Start("02");
+#endif
+            int lCount = 0;
 
-                if (mState.AnimatorStates[i].StateInfo.nameHash != mPrevState.AnimatorStates[i].StateInfo.nameHash)
+            if (mAnimator != null)
+            {
+                lCount = mState.AnimatorStates.Length;
+                for (int i = 0; i < lCount; i++)
                 {
-                    OnAnimatorStateChange(i);
+                    mState.AnimatorStates[i].StateInfo = mAnimator.GetCurrentAnimatorStateInfo(i);
+                    mState.AnimatorStates[i].TransitionInfo = mAnimator.GetAnimatorTransitionInfo(i);
+
+                    if (mState.AnimatorStates[i].StateInfo.nameHash != mPrevState.AnimatorStates[i].StateInfo.nameHash)
+                    {
+                        OnAnimatorStateChange(i);
+                    }
                 }
             }
 
-            // Test if we're grounded or not
-            DetermineGrounding();
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Stop("02");
+#endif
 
-            // Grab the direction and speed of the input from the keyboard, game controller, etc.
+            // 3. Test if we're grounded or not
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Start("03");
+#endif
+            DetermineGrounding();
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Stop("03");
+#endif
+
+            // 4. Grab the direction and speed of the input from the keyboard, game controller, etc.
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Start("04");
+#endif
             if (_UseInput)
             {
                 ProcessInput();
@@ -670,23 +704,41 @@ namespace com.ootii.AI.Controllers
             {
                 SimulateInput();
             }
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Stop("04");
+#endif
 
-            // Clean the existing root motion so we don't have motion we don't want
+            // 5. Clean the existing root motion so we don't have motion we don't want
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Start("05");
+#endif
             CleanRootMotion();
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Stop("05");
+#endif
 
-            // Determine if we're aiming, in melee, or moving through
-            // the environment.
-            DetermineStance();
-
-            // Update each layer to determine the final velocity and rotation
-            for (int i = 0; i < MotionLayers.Count; i++)
+            // 6. Update each layer to determine the final velocity and rotation
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Start("06");
+#endif
+            lCount = MotionLayers.Count;
+            for (int i = 0; i < lCount; i++)
             {
                 MotionLayers[i].UpdateMotions();
                 if (MotionLayers[i].UseTrendData) { lUseTrendData = true; }
             }
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Stop("06");
+#endif
 
-            // Determine the trend so we can figure out acceleration
+            // 7. Determine the trend so we can figure out acceleration
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Start("07");
+#endif
             DetermineTrendData();
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Stop("07");
+#endif
 
             // When we update the controller here, things are smooth and in synch
             // with the camera. If we put this code in the FixedUpdate() or OnAnimateMove()
@@ -694,28 +746,63 @@ namespace com.ootii.AI.Controllers
             //
             // We need the camera in LateUpdate() since this is where it's smoothest and 
             // preceeds for each draw call.
+            
+            // 8. Apply rotation
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Start("08");
+#endif
             ApplyRotation(Time.deltaTime);
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Stop("08");
+#endif
+
+            // 9. Apply translation
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Start("09");
+#endif
             ApplyMovement(Time.deltaTime);
             mMovementApplied = true;
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Stop("09");
+#endif
 
-            // There may be cases where the avatar can get stuck in the environment.
+            // 10. There may be cases where the avatar can get stuck in the environment.
             // We'll use this logic to undo that
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Start("10");
+#endif
             FreeColliderFromEdge();
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Stop("10");
+#endif
 
-            // Send the current state data to the animator
-            SetAnimatorProperties(mState, lUseTrendData);
+            // 11. Send the current state data to the animator
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Start("11");
+#endif
+           SetAnimatorProperties(mState, lUseTrendData);
+#if MC_ENABLE_PROFILING
+            Utilities.Profiler.Stop("11");
+#endif
 
             // Stop the timer
-            mProfiler.Stop();
+            mUpdateProfiler.Stop();
 
             // Write out debug info
             if (_UseInput)
             {
-                Log.ScreenWrite(String.Format("AC.Update() Time:{0:f4} Mx:{1:f4} My:{2:f4} Vx:{3:f4} Vy:{4:f4} MCTime:{5:f4}", Time.deltaTime, InputManager.MovementX, InputManager.MovementY, InputManager.ViewX, InputManager.ViewY, mProfiler.AverageTime), 2);
-                Log.ScreenWrite(String.Format("AC.Update() IsGrd:{0} GrdDist:{1:f4} IsFwdBlocked:{2} Pos:{3} Vel:{4}", mState.IsGrounded, mState.GroundDistance, mState.IsForwardPathBlocked, StringHelper.ToString(transform.position), StringHelper.ToString(mState.Velocity)), 3);
-                Log.ScreenWrite(String.Format("AC.Update() Motion:{0} MotionDur:{1:f4} StPhase:{2:f4} Anim:{3} AT:{4}", CurrentMotionName, CurrentMotionDuration, mState.AnimatorStates[0].MotionPhase, AnimatorHashToString(mState.AnimatorStates[0].StateInfo.nameHash, mState.AnimatorStates[0].TransitionInfo.nameHash), mState.AnimatorStates[0].StateInfo.normalizedTime), 4);
+                Log.ScreenWrite(String.Format("AC.Update() Time:{0:f4}ms {1} Mx:{2:f4} My:{3:f4} Vx:{4:f4} Vy:{5:f4} MCTime:{6:f4}ms", Time.deltaTime, CurrentMotionName, InputManager.MovementX, InputManager.MovementY, InputManager.ViewX, InputManager.ViewY, mUpdateProfiler.Time), 2);
+                //Log.ScreenWrite(String.Format("AC.Update() IsGrd:{0} GrdDist:{1:f4} IsFwdBlocked:{2} Pos:{3} Vel:{4}", mState.IsGrounded, mState.GroundDistance, mState.IsForwardPathBlocked, StringHelper.ToString(transform.position), StringHelper.ToString(mState.Velocity)), 3);
+                //Log.ScreenWrite(String.Format("AC.Update() Motion:{0} MotionDur:{1:f4} StPhase:{2:f4} Anim:{3} AT:{4}", CurrentMotionName, CurrentMotionDuration, mState.AnimatorStates[0].MotionPhase, AnimatorHashToString(mState.AnimatorStates[0].StateInfo.nameHash, mState.AnimatorStates[0].TransitionInfo.nameHash), mState.AnimatorStates[0].StateInfo.normalizedTime), 4);
 
-//                Log.FileWrite("AC.Update() DT:" + Time.deltaTime.ToString("0.000000") + " IsG:" + mState.IsGrounded + "|" + mCharController.isGrounded + " GD:" + mState.GroundDistance.ToString("0.000") + " IMag:" + mState.InputMagnitudeTrend.Value.ToString("0.000") + " IMagAvg:" + mState.InputMagnitudeTrend.Average.ToString("0.000") +  " CamMode:" + _CameraRig.Mode + " CAngle:" + mState.InputFromCameraAngle.ToString("0.000") + " AAngle:" + mState.InputFromAvatarAngle.ToString("0.000") + " Motion:" + CurrentMotionName + " Phase:" + GetAnimatorMotionPhase(0) + " Pos:" + StringHelper.ToString(transform.position) + " Vel:" + StringHelper.ToString(mState.Velocity) + " AccVel:" + StringHelper.ToString(mAccumulatedVelocity) + " Rot:" + StringHelper.ToString(transform.rotation) + " Anim:" + AnimatorHashToString(mState.AnimatorStates[0].StateInfo.nameHash, mState.AnimatorStates[0].TransitionInfo.nameHash) + " AT:" + mState.AnimatorStates[0].StateInfo.normalizedTime.ToString("0.000") + " TT:" + mState.AnimatorStates[0].TransitionInfo.normalizedTime.ToString("0.000") + " RM-Vel:" + StringHelper.ToString(mRootMotionVelocity));
+                //Log.FileWrite("AC.Update() DT:" + Time.deltaTime.ToString("0.000000") + " IsG:" + mState.IsGrounded + "|" + mCharController.isGrounded + " GD:" + mState.GroundDistance.ToString("0.000") + " IMag:" + mState.InputMagnitudeTrend.Value.ToString("0.000") + " IMagAvg:" + mState.InputMagnitudeTrend.Average.ToString("0.000") +  " CamMode:" + _CameraRig.Mode + " CAngle:" + mState.InputFromCameraAngle.ToString("0.000") + " AAngle:" + mState.InputFromAvatarAngle.ToString("0.000") + " Motion:" + CurrentMotionName + " Phase:" + GetAnimatorMotionPhase(0) + " Pos:" + StringHelper.ToString(transform.position) + " Vel:" + StringHelper.ToString(mState.Velocity) + " AccVel:" + StringHelper.ToString(mAccumulatedVelocity) + " Rot:" + StringHelper.ToString(transform.rotation) + " Anim:" + AnimatorHashToString(mState.AnimatorStates[0].StateInfo.nameHash, mState.AnimatorStates[0].TransitionInfo.nameHash) + " AT:" + mState.AnimatorStates[0].StateInfo.normalizedTime.ToString("0.000") + " TT:" + mState.AnimatorStates[0].TransitionInfo.normalizedTime.ToString("0.000") + " RM-Vel:" + StringHelper.ToString(mRootMotionVelocity));
+
+#if MC_ENABLE_PROFILING
+                if (InputManager.IsJustPressed(KeyCode.P))
+                {
+                    Log.FileWrite(Utilities.Profiler.ToString(""));
+                }
+#endif
             }
         }
 
@@ -761,7 +848,7 @@ namespace com.ootii.AI.Controllers
                 {
                     // Rotate the avatar
                     Quaternion lDeltaRotation = mPrevState.SupportRotation.RotationTo(mState.SupportRotation);
-                    transform.Rotate(lDeltaRotation.eulerAngles);
+                    transform.Rotate(0f, lDeltaRotation.eulerAngles.y, 0f);
 
                     // Orbit the support
                     lSupportMove += (mState.SupportRotation * mState.SupportContactPosition) - (mPrevState.SupportRotation * mState.SupportContactPosition);
@@ -798,18 +885,11 @@ namespace com.ootii.AI.Controllers
         {
             float lDistance = float.MaxValue;
 
-            // First, determine the height from the ground. To do this, ignore
-            // the player layer (layer index 8). Invert the bitmask so we get
-            // everything EXCEPT the player
-            int lPlayerLayerMask = 1 << 8;
-            lPlayerLayerMask = ~lPlayerLayerMask;
-
             // Create an adjusted player position so we can hit the ground
             Vector3 lRayStart = mCharController.transform.position + (mCharController.transform.rotation * mCharController.center);
 
             // Test the collision and set the ground distance
-            bool lCollisionHit = UnityEngine.Physics.Raycast(lRayStart, Vector3.down, out rCollisionInfo, 10f, lPlayerLayerMask);
-            if (lCollisionHit)
+            if (SafeRaycast(lRayStart, Vector3.down, ref rCollisionInfo, 10f))
             {
                 lDistance = rCollisionInfo.distance - mCharController.center.y;
             }
@@ -858,6 +938,19 @@ namespace com.ootii.AI.Controllers
 
             mCharController.center = lCenter;
         }
+
+		public void SetColliderRadiusAtCenter(float rRadius)
+		{
+			if (rRadius == mCharController.radius) { return; }
+			
+			mCharController.radius = rRadius;
+			
+			Vector3 lCenter = mCharController.center;
+			lCenter.x = (mBaseColliderRadius / 2f);
+			lCenter.z = (mBaseColliderRadius / 2f);
+			
+			mCharController.center = lCenter;
+		}
 
         /// <summary>
         /// Applies an instant force. As an impulse, the force of a full second
@@ -954,17 +1047,80 @@ namespace com.ootii.AI.Controllers
         /// type.
         /// </summary>
         /// <param name="rLayerIndex">Layer to look through</param>
-        /// <param name="rControllerMotion">Type of controller motion to look for</param>
+        /// <param name="rType">Type of controller motion to look for</param>
         /// <returns>Returns reference to the first motion matching the type or null if not found</returns>
-        public MotionControllerMotion GetMotion(int rLayerIndex, Type rControllerMotion)
+        public MotionControllerMotion GetMotion(int rLayerIndex, Type rType)
         {
             if (rLayerIndex >= MotionLayers.Count) { return null; }
 
             for (int i = 0; i < MotionLayers[rLayerIndex].Motions.Count; i++)
             {
-                if (MotionLayers[rLayerIndex].Motions[i].GetType() == rControllerMotion)
+                if (MotionLayers[rLayerIndex].Motions[i].GetType() == rType)
                 {
                     return MotionLayers[rLayerIndex].Motions[i];
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Return the first motion in a layer that matches the specific motion
+        /// type.
+        /// </summary>
+        /// <param name="rType">Type of controller motion to look for</param>
+        /// <returns>Returns reference to the first motion matching the type or null if not found</returns>
+        public MotionControllerMotion GetMotion(Type rType)
+        {
+            for (int i = 0; i < MotionLayers.Count; i++)
+            {
+                for (int j = 0; j < MotionLayers[i].Motions.Count; j++)
+                {
+                    if (MotionLayers[i].Motions[j].GetType() == rType)
+                    {
+                        return MotionLayers[i].Motions[j];
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Return the first motion in a layer that matches the specific motion
+        /// type.
+        /// </summary>
+        /// <param name="rName">Name of controller motion to look for</param>
+        /// <returns>Returns reference to the first motion matching the type or null if not found</returns>
+        public MotionControllerMotion GetMotion(int rLayerIndex, String rName)
+        {
+            for (int i = 0; i < MotionLayers[rLayerIndex].Motions.Count; i++)
+            {
+                if (MotionLayers[rLayerIndex].Motions[i].Name == rName)
+                {
+                    return MotionLayers[rLayerIndex].Motions[i];
+                }
+            }
+
+            return null;
+        }
+        
+        /// <summary>
+        /// Return the first motion in a layer that matches the specific motion
+        /// type.
+        /// </summary>
+        /// <param name="rName">Name of controller motion to look for</param>
+        /// <returns>Returns reference to the first motion matching the type or null if not found</returns>
+        public MotionControllerMotion GetMotion(String rName)
+        {
+            for (int i = 0; i < MotionLayers.Count; i++)
+            {
+                for (int j = 0; j < MotionLayers[i].Motions.Count; j++)
+                {
+                    if (MotionLayers[i].Motions[j].Name == rName)
+                    {
+                        return MotionLayers[i].Motions[j];
+                    }
                 }
             }
 
@@ -995,22 +1151,129 @@ namespace com.ootii.AI.Controllers
         }
 
         /// <summary>
+        /// Activate the specified motion (on the next frame).
+        /// </summary>
+        /// <param name="rMotion">Motion to activate</param>
+        public void ActivateMotion(MotionControllerMotion rMotion)
+        {
+            if (rMotion != null)
+            {
+                rMotion.MotionLayer.QueueMotion(rMotion);
+            }
+        }
+
+        /// <summary>
+        /// Finds the first motion matching the motion type and then attempts
+        /// to activate it (on the next frame).
+        /// </summary>
+        /// <param name="rMotionType">Type of motion to activate</param>
+        /// <returns>Returns the motion to be activated or null if a matching motion isn't found</returns>
+        public MotionControllerMotion ActivateMotion(Type rMotion)
+        {
+            for (int i = 0; i < MotionLayers.Count; i++)
+            {
+                for (int j = 0; j < MotionLayers[i].Motions.Count; j++)
+                {
+                    MotionControllerMotion lMotion = MotionLayers[i].Motions[j];
+                    if (lMotion.GetType() == rMotion)
+                    {
+                        MotionLayers[i].QueueMotion(lMotion);
+                        return lMotion;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Moves the actor based on the velocity passed. This will
+        /// determine rotation as well as position as the actor typically
+        /// attempts to face forward the velocity.
+        /// </summary>
+        /// <param name="rVelocity">Velocity to move the actor</param>
+        public void SetTargetVelocity(Vector3 rVelocity)
+        {
+            mTargetVelocity = rVelocity;
+
+            if (mTargetVelocity.sqrMagnitude > 0f)
+            {
+                mTargetPosition = Vector3.zero;
+                mTargetNormalizedSpeed = 0f;
+            }
+        }
+
+        /// <summary>
+        /// Moves the actor towards the target position using the normalized
+        /// speed. This normalized speed will be used to temper the standard
+        /// root-motion velocity
+        /// </summary>
+        /// <param name="rPosition"></param>
+        /// <param name="rNormalizedSpeed"></param>
+        public void SetTargetPosition(Vector3 rPosition, float rNormalizedSpeed)
+        {
+            mTargetPosition = rPosition;
+            mTargetNormalizedSpeed = rNormalizedSpeed;
+
+            if (mTargetPosition.sqrMagnitude > 0f) 
+            { 
+                mTargetVelocity = Vector3.zero; 
+            }
+        }
+
+        /// <summary>
+        /// Rotates the actor towards the target rotation.
+        /// </summary>
+        /// <param name="rPosition"></param>
+        /// <param name="rNormalizedSpeed"></param>
+        public void SetTargetRotation(Quaternion rRotation)
+        {
+            mTargetRotation = rRotation;
+        }
+
+        /// <summary>
+        /// Clears out the target movement values
+        /// </summary>
+        public void ClearTarget()
+        {
+            mTargetVelocity = Vector3.zero;
+            mTargetPosition = Vector3.zero;
+            mTargetRotation = Quaternion.identity;
+            mTargetNormalizedSpeed = 0f;
+        }
+
+        /// <summary>
         /// Moves the avatar towards this position over time using the controller's
         /// locomotion functions. 
         /// </summary>
         /// <param name="rPosition"></param>
+        [Obsolete("Use SetTargetPosition instead.")]
         public void MoveTowards(Vector3 rPosition)
         {
-            mPositionTarget = rPosition;
+            SetTargetPosition(rPosition, 1f);
         }
 
         /// <summary>
+        /// DEPRICATED
+        /// Moves the avatar towards this position over time using the controller's
+        /// locomotion functions. 
+        /// </summary>
+        /// <param name="rPosition"></param>
+        [Obsolete("Use SetTargetPosition instead.")]
+        public void MoveTowards(Vector3 rPosition, float rNormalizedSpeed)
+        {
+            SetTargetPosition(rPosition, rNormalizedSpeed);
+        }
+
+        /// <summary>
+        /// DEPRICATED
         /// Rotates the avatar to
         /// </summary>
         /// <param name="rRotation"></param>
+        [Obsolete("Use SetTargetRotation instead.")]
         public void RotateTowards(Quaternion rRotation)
         {
-            mRotationTarget = rRotation;
+            mTargetRotation = rRotation;
         }
 
         /// <summary>
@@ -1019,7 +1282,7 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         private void ProcessInput()
         {
-            if (_CameraRig == null) { return; }
+            if (_CameraTransform == null) { return; }
 
             // Grab the movement, but create a bit of a dead zone
             float lHInput = InputManager.MovementX;
@@ -1037,6 +1300,10 @@ namespace com.ootii.AI.Controllers
                 mState.InputForward = Vector3.zero;
                 mState.InputFromAvatarAngle = 0f;
                 mState.InputFromCameraAngle = 0f;
+
+                InputManager.InputFromCameraAngle = float.NaN;
+                InputManager.InputFromAvatarAngle = float.NaN;
+
                 return;
             }
 
@@ -1049,21 +1316,29 @@ namespace com.ootii.AI.Controllers
             lControllerForward.Normalize();
 
             // Direction of the camera
-            Vector3 lCameraForward = _CameraTransform.forward;
-            lCameraForward.y = 0f;
-            lCameraForward.Normalize();
+            if (_CameraTransform != null)
+            {
+                Vector3 lCameraForward = _CameraTransform.forward;
+                lCameraForward.y = 0f;
+                lCameraForward.Normalize();
 
-            // Create a quaternion that gets us from our world-forward to our camera direction.
-            // FromToRotation creates a quaternion using the shortest method which can sometimes
-            // flip the angle. LookRotation will attempt to keep the "up" direction "up".
-            //Quaternion rToCamera = Quaternion.FromToRotation(Vector3.forward, Vector3.Normalize(lCameraForward));
-            Quaternion rToCamera = Quaternion.LookRotation(lCameraForward);
+                // Create a quaternion that gets us from our world-forward to our camera direction.
+                // FromToRotation creates a quaternion using the shortest method which can sometimes
+                // flip the angle. LookRotation will attempt to keep the "up" direction "up".
+                //Quaternion rToCamera = Quaternion.FromToRotation(Vector3.forward, Vector3.Normalize(lCameraForward));
+                Quaternion rToCamera = Quaternion.LookRotation(lCameraForward);
 
-            // Transform joystick from world space to camera space. Now the input is relative
-            // to how the camera is facing.
-            Vector3 lMoveDirection = rToCamera * mState.InputForward;
-            mState.InputFromCameraAngle = NumberHelper.GetHorizontalAngle(lCameraForward, lMoveDirection);
-            mState.InputFromAvatarAngle = NumberHelper.GetHorizontalAngle(lControllerForward, lMoveDirection);
+                // Transform joystick from world space to camera space. Now the input is relative
+                // to how the camera is facing.
+                Vector3 lMoveDirection = rToCamera * mState.InputForward;
+                mState.InputFromCameraAngle = NumberHelper.GetHorizontalAngle(lCameraForward, lMoveDirection);
+                mState.InputFromAvatarAngle = NumberHelper.GetHorizontalAngle(lControllerForward, lMoveDirection);
+            }
+            else
+            {
+                mState.InputFromCameraAngle = 0f;
+                mState.InputFromAvatarAngle = 0f;
+            }
 
             // Set the direction of the movement in ranges of -1 to 1
             mState.InputX = lHInput;
@@ -1082,20 +1357,42 @@ namespace com.ootii.AI.Controllers
         private void SimulateInput()
         {
             // Get out early if there's nothing to do
-            if (mPositionTarget.sqrMagnitude == 0f && mRotationTarget == Quaternion.identity) { return; }
+            if (mTargetVelocity.sqrMagnitude == 0f && mTargetPosition.sqrMagnitude == 0f && mTargetRotation == Quaternion.identity) 
+            {
+                mState.InputX = 0;
+                mState.InputY = 0;
+                mState.InputForward = Vector3.zero;
+                mState.InputFromCameraAngle = 0f;
+                mState.InputFromAvatarAngle = 0f;
+                mState.InputMagnitudeTrend.Value = 0f;
 
+                return; 
+            }
+
+            float lRotation = 0f;
             Vector3 lMovement = Vector3.zero;
-            NumberHelper.GetHorizontalDifference(transform.position, mPositionTarget, ref lMovement);
 
-            //Quaternion lRotation = Quaternion.Inverse(transform.rotation) * mRotationTarget;
-            float lRotation = NumberHelper.GetHorizontalAngle(transform.forward, lMovement.normalized);
+            if (mTargetVelocity.sqrMagnitude > 0f)
+            {
+                lMovement = mTargetVelocity;
+                mTargetNormalizedSpeed = Mathf.Clamp01(lMovement.magnitude / _MaxSpeed);
+
+                lRotation = NumberHelper.GetHorizontalAngle(transform.forward, lMovement.normalized);
+            }
+            else
+            {
+                NumberHelper.GetHorizontalDifference(transform.position, mTargetPosition, ref lMovement);
+                mTargetNormalizedSpeed = Mathf.Clamp01(lMovement.magnitude / _MaxSpeed);
+
+                lRotation = NumberHelper.GetHorizontalAngle(transform.forward, lMovement.normalized);
+            }
 
             // Determine the simulated input
             float lHInput = 0f;
             float lVInput = 0f;
 
-            // Grab the movement, but create a bit of a dead zone
-            if (lMovement.magnitude < 0.01f)
+            // Simulate the input
+            if (lMovement.magnitude < 0.001f)
             {
                 lHInput = 0f;
                 lVInput = 0f;
@@ -1103,10 +1400,10 @@ namespace com.ootii.AI.Controllers
             else
             {
                 lHInput = 0f;
-                lVInput = 1f;
+                lVInput = mTargetNormalizedSpeed;
             }
 
-            // Set the forward direction of the input
+            // Set the forward direction of the input, making it relative to the forward direction of the actor
             mState.InputForward = new Vector3(lHInput, 0f, lVInput);
             mState.InputForward = Quaternion.FromToRotation(transform.forward, lMovement.normalized) * mState.InputForward;
 
@@ -1122,20 +1419,28 @@ namespace com.ootii.AI.Controllers
             lControllerForward.Normalize();
 
             // Direction of the camera
-            Vector3 lCameraForward = _CameraTransform.forward;
-            lCameraForward.y = 0f;
-            lCameraForward.Normalize();
+            if (_CameraTransform != null)
+            {
+                Vector3 lCameraForward = _CameraTransform.forward;
+                lCameraForward.y = 0f;
+                lCameraForward.Normalize();
 
-            // Create a quaternion that gets us from our world-forward to our camera direction.
-            // FromToRotation creates a quaternion using the shortest method which can sometimes
-            // flip the angle. LookRotation will attempt to keep the "up" direction "up".
-            //Quaternion rToCamera = Quaternion.FromToRotation(Vector3.forward, Vector3.Normalize(lCameraForward));
-            Quaternion rToCamera = Quaternion.LookRotation(lCameraForward);
+                // Create a quaternion that gets us from our world-forward to our camera direction.
+                // FromToRotation creates a quaternion using the shortest method which can sometimes
+                // flip the angle. LookRotation will attempt to keep the "up" direction "up".
+                //Quaternion rToCamera = Quaternion.FromToRotation(Vector3.forward, Vector3.Normalize(lCameraForward));
+                Quaternion rToCamera = Quaternion.LookRotation(lCameraForward);
 
-            // Transform joystick from world space to camera space. Now the input is relative
-            // to how the camera is facing.
-            Vector3 lMoveDirection = rToCamera * mState.InputForward;
-            mState.InputFromCameraAngle = NumberHelper.GetHorizontalAngle(lCameraForward, lMoveDirection);
+                // Transform joystick from world space to camera space. Now the input is relative
+                // to how the camera is facing.
+                Vector3 lMoveDirection = rToCamera * mState.InputForward;
+                mState.InputFromCameraAngle = NumberHelper.GetHorizontalAngle(lCameraForward, lMoveDirection);
+            }
+            else
+            {
+                mState.InputFromCameraAngle = 0f;
+            }
+
             mState.InputFromAvatarAngle = lRotation;
         }
 
@@ -1145,11 +1450,7 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         private void DetermineGrounding()
         {
-            RaycastHit[] lSphereHits = null;
-
-            // Create an adjusted player position so we can hit the ground
-            Ray lRay = new Ray(transform.position + (mCharController.transform.rotation * mCharController.center), Vector3.down);
-            if (UnityEngine.Physics.Raycast(lRay, out sGroundCollisionInfo, 10f, PlayerMask))
+            if (SafeRaycast(transform.position + (mCharController.transform.rotation * mCharController.center), Vector3.down, ref sGroundCollisionInfo, mCharController.center.y + 1f))            
             {
                 mState.GroundNormal = sGroundCollisionInfo.normal;
                 mState.GroundDistance = sGroundCollisionInfo.distance - mCharController.center.y;
@@ -1159,18 +1460,19 @@ namespace com.ootii.AI.Controllers
                 if (mState.GroundDistance <= GROUND_DISTANCE_TEST)
                 {
                     mState.IsGrounded = true;
-
                     mState.Support = sGroundCollisionInfo.collider.gameObject;
 
-                    if (mState.Support.rigidbody != null)
+                    Rigidbody lRigidBody = mState.Support.rigidbody;
+                    if (lRigidBody != null)
                     {
-                        mState.SupportPosition = mState.Support.rigidbody.position;
-                        mState.SupportRotation = mState.Support.rigidbody.rotation;
+                        mState.SupportPosition = lRigidBody.position;
+                        mState.SupportRotation = lRigidBody.rotation;
                     }
                     else
                     {
-                        mState.SupportPosition = mState.Support.transform.position;
-                        mState.SupportRotation = mState.Support.transform.rotation;
+                        Transform lTransform = mState.Support.transform;
+                        mState.SupportPosition = lTransform.position;
+                        mState.SupportRotation = lTransform.rotation;
                     }
 
                     // We use the contact point to determine the amount of orbit
@@ -1200,6 +1502,9 @@ namespace com.ootii.AI.Controllers
             // makes us think we're not grounded when we are
             if (!mState.IsGrounded && IsGroundedExpected)
             {
+                RaycastHit[] lSphereHits = null;
+                Ray lRay = new Ray(transform.position + (mCharController.transform.rotation * mCharController.center), Vector3.down);
+
                 // The sphere is smaller than the character controller and we only shoot it to the edge of the controller. This
                 // way we don't taint our results too much.
                 lSphereHits = UnityEngine.Physics.SphereCastAll(lRay, CharController.radius * 1.5f, mCharController.center.y + 0.01f, PlayerMask);
@@ -1240,27 +1545,20 @@ namespace com.ootii.AI.Controllers
             }
 
             // Test if the space in front of the character is safe for movement.
-            if (_ForwardBumper.sqrMagnitude > 0f)
+            if (_ForwardBumper.sqrMagnitude > 0f && (mState.Velocity.x != 0f && mState.Velocity.z != 0))
             {
+                mState.IsForwardPathBlocked = false;
+                mState.ForwardPathBlockNormal = Vector3.zero;
+
                 Vector3 lStart = transform.position;
                 lStart.y = transform.position.y + _ForwardBumper.y;
-                
-                Ray lForwardBumperRay = new Ray(lStart, transform.forward);
 
-                // First, check for a vertical wall. In this case, we use the forward bumper directly
-                if (UnityEngine.Physics.Raycast(lForwardBumperRay, out sRaycastHitInfo, _ForwardBumper.z, PlayerMask))
+                if (SafeRaycast(lStart, transform.forward, ref sRaycastHitInfo, _ForwardBumper.z))
                 {
-                    float lBumperAngle = Vector3.Angle(sRaycastHitInfo.normal, Vector3.up);
-                    mState.IsForwardPathBlocked = (lBumperAngle > mCharController.slopeLimit);
-                }
-                // Last, check for a ramp. We need to extend the raycast because of the slant
-                else if (UnityEngine.Physics.Raycast(lForwardBumperRay, out sRaycastHitInfo, _ForwardBumper.z * 2f, PlayerMask))
-                {
-                    float lBumperAngle = Vector3.Angle(sRaycastHitInfo.normal, Vector3.up);
-                    mState.IsForwardPathBlocked = (lBumperAngle > mCharController.slopeLimit);
-                }
 
-                //Debug.DrawLine(lStart, transform.position + (transform.rotation * _ForwardBumper), Color.red);
+                    mState.IsForwardPathBlocked = true;
+                    mState.ForwardPathBlockNormal = sRaycastHitInfo.normal;
+                }
             }
 
             // Allows the motions to override the grounded values. If even one
@@ -1271,27 +1569,6 @@ namespace com.ootii.AI.Controllers
             {
                 if (!MotionLayers[i].DetermineGrounding(ref mState)) { mState.IsGrounded = false; }
             }
-
-            // If we're starting a jump, we'll be too close to the ground and
-            // we'll be considered grounded. Force the value.
-            //            if (mState.MotionStates[0].Phase == Jump.PHASE_LAUNCH || mState.MotionStates[0].Phase == Jump.PHASE_START_JUMP)
-            // if (MotionLayers.Count > 0 && MotionLayers[0].ActiveMotionPhase == Jump.PHASE_START_JUMP)
-            // {
-            //     mState.IsGrounded = false;
-            // }
-
-            // Debug info
-            //UnityEngine.Debug.DrawLine(lRayStart, lRayStart + new Vector3(0f, -3f, 0f), Color.red);
-            //UnityEngine.Debug.DrawLine(transform.position, transform.position + transform.right, Color.red);
-            //UnityEngine.Debug.DrawLine(transform.position, transform.position + transform.forward, Color.red);
-        }
-
-        /// <summary>
-        /// Use the current input information and previous state
-        /// to determine the current stance.
-        /// </summary>
-        private void DetermineStance()
-        {
         }
 
         /// <summary>
@@ -1382,108 +1659,97 @@ namespace com.ootii.AI.Controllers
         /// <param name="rDeltaTime">Time (in seconds) since the last call to use</param>
         private void ApplyMovement(float rDeltaTime)
         {
-            // If we're given a specific move target, move to that position
-            if (IsMovingToTarget)
-            {
-                transform.position = Vector3.SmoothDamp(transform.position, mMoveTarget, ref mMoveTargetVelocity, mMoveTargetTime);
-                float lDistance = Vector3.Distance(mMoveTarget, transform.position);
+            if (Time.deltaTime == 0f) { return; }
 
-                if (lDistance < 0.001f)
-                {
-                    mMoveTarget = Vector3.zero;
-                }
+            bool lIsGravityEnabled = true;
+            Vector3 lGapVelocity = Vector3.zero;
+            Vector3 lMotionVelocity = Vector3.zero;
+
+            int lMotionLayerCount = MotionLayers.Count;
+
+            // Apply the velocity from each of the active motions
+            for (int i = 0; i < lMotionLayerCount; i++)
+            {
+                lMotionVelocity += MotionLayers[i].Velocity;
+                if (!MotionLayers[i].IsGravityEnabled) { lIsGravityEnabled = false; }
             }
-            // If we don't have a specific target, use the root motion, velocity, and acceleration
-            // to calculate the right position
-            else
+
+            // If the support moves up, it can move into the character. This logic ensures
+            // the character moves up with the support/platform
+            if (mState.IsGrounded && mState.GroundDistance < -0.01f && lIsGravityEnabled)
             {
-                bool lIsGravityEnabled = true;
-                Vector3 lGapVelocity = Vector3.zero;
-                Vector3 lMotionVelocity = Vector3.zero;
+                lGapVelocity.y = (-mState.GroundDistance + 0.01f) / Time.deltaTime;
+            }
 
-                // Apply the velocity from each of the active motions
-                for (int i = 0; i < MotionLayers.Count; i++)
+            // Clear out our acceleration and reload based on the applied forces.
+            mAccumulatedAcceleration = CalculateAcceleration();
+
+            // If we're on the ground, we can clear out some of the calculations.
+            if (mState.IsGrounded)
+            {
+                // Reduce the acceleration and velocity to 0 over the ground drag duration
+                if (mAccumulatedAcceleration.sqrMagnitude < 0.005f) { mAccumulatedAcceleration = Vector3.zero; } else { mAccumulatedAcceleration -= (mAccumulatedAcceleration * (rDeltaTime / mGroundDragDuration)); }
+                if (mAccumulatedVelocity.sqrMagnitude < 0.005f) { mAccumulatedVelocity = Vector3.zero; } else { mAccumulatedVelocity -= (mAccumulatedVelocity * (rDeltaTime / mGroundDragDuration)); }
+            }
+
+            // If we're applying gravity, apply it
+            if (lIsGravityEnabled)
+            {
+                // We may force some acceleration based on the ground slop. This will
+                // allow us to slide if needed. It also forces the controller to register
+                // if it's being pushed into the ground
+                Vector3 lGravityAcceleration = _Gravity;
+
+                // If there's a large slope or if we don't think we're grounded, but the controller does it's probably
+                // because there is a steep slant or edge under us. Adjust gravity to help us slide past it.
+                if (mState.GroundAngle > _MinSlideAngle)
                 {
-                    lMotionVelocity += MotionLayers[i].Velocity;
-                    if (!MotionLayers[i].IsGravityEnabled) { lIsGravityEnabled = false; }
-                }
-
-                // If the support moves up, it can move into the character. This logic ensures
-                // the character moves up with the support/platform
-                if (mState.IsGrounded && mState.GroundDistance < -0.01f && lIsGravityEnabled)
-                {
-                    lGapVelocity.y = (-mState.GroundDistance + 0.01f) / Time.deltaTime;
-                }
-
-                // Clear out our acceleration and reload based on the applied forces.
-                mAccumulatedAcceleration = CalculateAcceleration();
-
-                // If we're on the ground, we can clear out some of the calculations.
-                if (mState.IsGrounded)
-                {
-                    // Reduce the acceleration and velocity to 0 over the ground drag duration
-                    if (mAccumulatedAcceleration.sqrMagnitude < 0.005f) { mAccumulatedAcceleration = Vector3.zero; } else { mAccumulatedAcceleration -= (mAccumulatedAcceleration * (rDeltaTime / mGroundDragDuration)); }
-                    if (mAccumulatedVelocity.sqrMagnitude < 0.005f) { mAccumulatedVelocity = Vector3.zero; } else { mAccumulatedVelocity -= (mAccumulatedVelocity * (rDeltaTime / mGroundDragDuration)); }
-                }
-
-                // If we're in an odd state with no motion, clear out the calculations
-                if (GetActiveMotion(0) == null)
-                {
-                    //mAccumulatedAcceleration = Vector3.zero;
-                    //mAccumulatedVelocity = Vector3.zero;
-                }
-
-                // If we're applying gravity, apply it
-                if (lIsGravityEnabled)
-                {
-                    // We may force some acceleration based on the ground slop. This will
-                    // allow us to slide if needed. It also forces the controller to register
-                    // if it's being pushed into the ground
-                    Vector3 lGravityAcceleration = _Gravity;
-
-                    // If there's a large slope or if we don't think we're grounded, but the controller does it's probably
-                    // because there is a steep slant or edge under us. Adjust gravity to help us slide past it.
-                    if (mState.GroundAngle > _MinSlideAngle)
+                    if (mState.IsGrounded || (!mState.IsGrounded && mCharController.isGrounded))
                     {
-                        if (mState.IsGrounded || (!mState.IsGrounded && mCharController.isGrounded))
+                        if (mState.GroundNormal != Vector3.up)
                         {
-                            if (mState.GroundNormal != Vector3.up)
-                            {
-                                // Grab the direction of gravitational force along the ground plane
-                                Vector3 lGravityDirection = _Gravity.normalized;
-                                Vector3.OrthoNormalize(ref mState.GroundNormal, ref lGravityDirection);
+                            // Grab the direction of gravitational force along the ground plane
+                            Vector3 lGravityDirection = _Gravity.normalized;
+                            Vector3.OrthoNormalize(ref mState.GroundNormal, ref lGravityDirection);
 
-                                // Use this direction to determine the actual components of gravity. Note
-                                // that we're not accumulating it the way we normally should. This is so the
-                                // slide down the slope isn't too much.
-                                lGravityAcceleration = lGravityDirection * _Gravity.magnitude;
-                            }
+                            // Use this direction to determine the actual components of gravity. Note
+                            // that we're not accumulating it the way we normally should. This is so the
+                            // slide down the slope isn't too much.
+                            lGravityAcceleration = lGravityDirection * _Gravity.magnitude;
                         }
                     }
-
-                    // Add the slope acceleration acceleration
-                    mAccumulatedAcceleration += lGravityAcceleration;
                 }
 
-                // Accumulate velocity from acceleration. We can't accumulate it
-                // in the state since root motion velocity doesn't accumulate.
-                mAccumulatedVelocity += (mAccumulatedAcceleration * rDeltaTime);
+                // Add the slope acceleration acceleration
+                mAccumulatedAcceleration += lGravityAcceleration;
+            }
 
-                // Calculate the final velocity given all of our data
-                mState.Velocity = mAccumulatedVelocity;
-                mState.Velocity += (transform.rotation * mRootMotionVelocity);
-                mState.Velocity += lMotionVelocity;
+            // Accumulate velocity from acceleration. We can't accumulate it
+            // in the state since root motion velocity doesn't accumulate.
+            mAccumulatedVelocity += (mAccumulatedAcceleration * rDeltaTime);
 
-                // Add velocities that are not due to the controller
-                Vector3 lVelocity = mState.Velocity;
+            // Calculate the final velocity given all of our data
+            mState.Velocity = mAccumulatedVelocity;
+            mState.Velocity += (transform.rotation * mRootMotionVelocity);
+            mState.Velocity += lMotionVelocity;
 
-                if (lGapVelocity.y > 0)
-                {
-                    lVelocity.y = Mathf.Max(lVelocity.y, lGapVelocity.y);
-                }
+            // Add velocities that are not due to the controller
+            Vector3 lVelocity = mState.Velocity;
 
-                // Use the new velocity to move the avatar. We're going to counter-act
-                // the controller's gravity so we can manage it ourselves
+            if (lGapVelocity.y > 0)
+            {
+                lVelocity.y = Mathf.Max(lVelocity.y, lGapVelocity.y);
+            }
+
+            // Use the new velocity to move the avatar. The biggest hit we take in performance
+            // is from the mCharController.Move() function. So we want to bypass it if we can.
+            bool lUpdateMove = false;
+            if (!lUpdateMove && !mState.IsGrounded) { lUpdateMove = true; }
+            if (!lUpdateMove && mState.IsGrounded && mState.GroundDistance > 0.03f) { lUpdateMove = true; }
+            if (!lUpdateMove && (lVelocity.x != 0f || lVelocity.y > 0f || lVelocity.z != 0f)) { lUpdateMove = true; }
+
+            if (lUpdateMove)
+            {
                 mCharController.Move(lVelocity * rDeltaTime);
 
                 // If we're grounded, we want to force the avatar down onto the
@@ -1669,6 +1935,8 @@ namespace com.ootii.AI.Controllers
         /// <param name="rState">ControllerState containing the current data</param>
         private void SetAnimatorProperties(ControllerState rState, bool rUseTrendData)
         {
+            if (mAnimator == null) { return; }
+
             // The primary 'mode' the character is in
             mAnimator.SetInteger("Stance", rState.Stance);
 
@@ -1740,17 +2008,12 @@ namespace com.ootii.AI.Controllers
             // the edged.
             if (!mState.IsGrounded && mCharController.isGrounded)
             {
-                // First, determine the height from the ground. To do this, ignore
-                // the player layer (layer index 8). Invert the bitmask so we get everything EXCEPT the player
-                int lPlayerLayerMask = 1 << 8;
-                lPlayerLayerMask = ~lPlayerLayerMask;
-
                 // Shoot a sphere from the center down so we can see where the 
                 // capsule collider hit. This mimicks the character controller collider
                 Vector3 lRayStart = transform.position + (mCharController.transform.rotation * mCharController.center);
 
                 RaycastHit lSphereCollisionInfo = new RaycastHit();
-                bool lSphereHit = UnityEngine.Physics.SphereCast(lRayStart, mCharController.radius, Vector3.down, out lSphereCollisionInfo, 10f, lPlayerLayerMask);
+                bool lSphereHit = UnityEngine.Physics.SphereCast(lRayStart, mCharController.radius, Vector3.down, out lSphereCollisionInfo, 10f, PlayerMask);
                 if (lSphereHit)
                 {
                     // We only want to handle the case when we're falling off 
@@ -1782,6 +2045,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         private void OnAnimatorMove()
         {
+            if (Time.deltaTime == 0f) { return; }
+
             // Store the root motion as a velocity per second. We also
             // want to keep it relative to the avatar's forward vector (for now).
             // Use Time.deltaTime to create an accurate velocity (as opposed to Time.fixedDeltaTime).
@@ -1820,6 +2085,18 @@ namespace com.ootii.AI.Controllers
                 {
                     MotionLayers[i].OnAnimatorStateChange(rAnimatorLayer, mPrevState.AnimatorStates[rAnimatorLayer].StateInfo.nameHash, mState.AnimatorStates[rAnimatorLayer].StateInfo.nameHash);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Allow the controller to render debug info
+        /// </summary>
+        public void OnDrawGizmos()
+        {
+            // Find the Motion Layers tied to the Animator Layer
+            for (int i = 0; i < MotionLayers.Count; i++)
+            {
+                MotionLayers[i].OnDrawGizmos();
             }
         }
 
@@ -1877,7 +2154,7 @@ namespace com.ootii.AI.Controllers
             string lState = (AnimatorStateNames.ContainsKey(rStateID) ? AnimatorStateNames[rStateID] : rStateID.ToString());
             string lTransition = (AnimatorStateNames.ContainsKey(rTransitionID) ? AnimatorStateNames[rTransitionID] : rTransitionID.ToString());
 
-            return "state:" + lState + " trans:" + lTransition;
+            return String.Format("state:{0} trans:{1}", lState, lTransition);
         }
 
         /// <summary>

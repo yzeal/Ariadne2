@@ -35,10 +35,15 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected string mName = "";
-        public string Name
+        public override string Name
         {
             get { return mName; }
-            set { mName = value; }
+            
+            set 
+            {
+                _Name = value;
+                mName = value; 
+            }
         }
 
         /// <summary>
@@ -51,6 +56,19 @@ namespace com.ootii.AI.Controllers
         {
             get { return mIsEnabled; }
             set { mIsEnabled = value; }
+        }
+
+        /// <summary>
+        /// Once deactivated, a delay before we start activating again
+        /// </summary>
+        [SerializeField]
+        protected float mReactivationDelay = 0f;
+
+        [MotionTooltip("Once deactivated, adds a delay before the motion can be activated again.")]
+        public float ReactivationDelay
+        {
+            get { return mReactivationDelay; }
+            set { mReactivationDelay = value; }
         }
 
         /// <summary>
@@ -151,6 +169,18 @@ namespace com.ootii.AI.Controllers
         }
 
         /// <summary>
+        /// Some motions could put the avatar on a new ground layer for
+        /// the purposes of the NavMesh. We'll use this flag to determine
+        /// if we need to reset the NavMeshAgent when the motion completes
+        /// </summary>
+        protected bool mIsNavMeshChangeExpected = false;
+        public bool IsNavMeshChangeExpected
+        {
+            get { return mIsNavMeshChangeExpected; }
+            set { mIsNavMeshChangeExpected = value; }
+        }
+
+        /// <summary>
         /// Determines how important this motion is to other
         /// motions. The higher the priority, the higher the
         /// importance.
@@ -228,6 +258,15 @@ namespace com.ootii.AI.Controllers
         }
 
         /// <summary>
+        /// Tracks the last time the motion was deactivate
+        /// </summary>
+        protected float mDeactivationTime = 0f;
+        public float DeactivationTime
+        {
+            get { return mDeactivationTime; }
+        }
+
+        /// <summary>
         /// Default constructor
         /// </summary>
         public MotionControllerMotion()
@@ -296,6 +335,7 @@ namespace com.ootii.AI.Controllers
         {
             mIsActive = false;
             mIsStartable = true;
+            mDeactivationTime = Time.time;
             mVelocity = Vector3.zero;
             mAngularVelocity = Vector3.zero;
         }
@@ -360,6 +400,13 @@ namespace com.ootii.AI.Controllers
         }
 
         /// <summary>
+        /// Allow the motion to render debug info
+        /// </summary>
+        public virtual void OnDrawGizmos()
+        {
+        }
+
+        /// <summary>
         /// Used internally to calculate the velocity of the motion. Root motion
         /// is handled by the controller directly and won't come through this function.
         /// </summary>
@@ -396,6 +443,7 @@ namespace com.ootii.AI.Controllers
             lStringBuilder.Append(", \"Name\" : \"" + mName + "\"");
             lStringBuilder.Append(", \"Priority\" : \"" + _Priority.ToString() + "\"");
             lStringBuilder.Append(", \"IsEnabled\" : \"" + mIsEnabled.ToString() + "\"");
+            lStringBuilder.Append(", \"ReactivationDelay\" : \"" + mReactivationDelay.ToString() + "\"");
 
             // Cycle through all the properties. 
             // Unfortunately Binding flags don't seem to be working. So,

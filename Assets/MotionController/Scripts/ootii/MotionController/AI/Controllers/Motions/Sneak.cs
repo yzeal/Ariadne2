@@ -17,11 +17,15 @@ namespace com.ootii.AI.Controllers
     /// 
     /// This motion will force the camera into the third-person-fixed mode.
     /// </summary>
+    [MotionTooltip("A forward motion that looks like the avatar is sneaking. The motion is slower than a walk and has the " +
+                   "avatar always facing forward.")]
     public class Sneak : MotionControllerMotion
     {
         // Enum values for the motion
         public const int PHASE_UNKNOWN = 0;
         public const int PHASE_START = 600;
+
+		protected Vector3 mLaunchForward = Vector3.zero;
 
         /// <summary>
         /// Default constructor
@@ -29,7 +33,7 @@ namespace com.ootii.AI.Controllers
         public Sneak()
             : base()
         {
-            _Priority = 1;
+            _Priority = 100;
             mIsStartable = true;
             mIsGroundedExpected = true;
         }
@@ -73,11 +77,11 @@ namespace com.ootii.AI.Controllers
         {
             if (!mIsStartable) { return false; }
             if (!mController.IsGrounded) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
 
             // Only move in if the stance is set or it's time to move in
             if (mController.State.Stance == EnumControllerStance.SNEAK ||
-                mController.State.Stance == EnumControllerStance.TRAVERSAL && InputManager.IsJustPressed("ChangeStance"))
+//                mController.State.Stance == EnumControllerStance.TRAVERSAL && InputManager.IsJustPressed("ChangeStance"))
+			    InputManager.IsJustPressed("ChangeStance"))
             {
                 return true;
             }
@@ -96,8 +100,7 @@ namespace com.ootii.AI.Controllers
             if (mIsActivatedFrame) { return true; }
 
             if (!IsInSneakState) { return false; }
-            if (!mController.IsGrounded) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
+//            if (!mController.IsGrounded) { return false; }
             if (mController.State.Stance != EnumControllerStance.SNEAK) { return false; }
             if (InputManager.IsJustPressed("ChangeStance")) { return false; }
 
@@ -113,6 +116,10 @@ namespace com.ootii.AI.Controllers
         {
             // Force the character's stance to change
             mController.Stance = EnumControllerStance.SNEAK;
+
+			mLaunchForward = mController.transform.forward;
+			mController.SetColliderHeightAtBase(0.5f*mController.BaseColliderHeight);
+//			mController.SetColliderRadiusAtCenter(2f*mController.BaseColliderRadius);
 
             // Trigger the change in the animator
             mController.SetAnimatorMotionPhase(mMotionLayer.AnimatorLayerIndex, Sneak.PHASE_START, true);
@@ -133,6 +140,10 @@ namespace com.ootii.AI.Controllers
                 mController.Stance = EnumControllerStance.TRAVERSAL;
             }
 
+			//TESTI
+			mController.SetColliderHeightAtBase(mController.BaseColliderHeight);
+			mController.SetColliderRadiusAtCenter(mController.BaseColliderRadius);
+
             // Deactivate
             base.Deactivate();
         }
@@ -149,37 +160,120 @@ namespace com.ootii.AI.Controllers
                 return;
             }
 
-            DetermineAngularVelocity();
-            DetermineVelocity();
+            
+            
+
+			//TESTI
+//			mController.SetColliderHeightAtCenter(0.8f);
+//			mController.SetColliderHeightAtBase(0.5f);
 
             // Trend data allows us to wait for the speed to peak or bottom-out before we send it to
             // the animator. This is important for pivots that need to be very precise.
             mUseTrendData = true;
+
+			DetermineVelocity();
+			DetermineAngularVelocity();
+
         }
 
-        /// <summary>
-        /// Returns the current angular velocity of the motion
-        /// </summary>
-        protected override Vector3 DetermineAngularVelocity()
-        {
-            mAngularVelocity = Vector3.zero;
+		/// <summary>
+		/// Returns the current velocity of the motion
+		/// </summary>
+		protected override Vector3 DetermineVelocity()
+		{
+			ControllerState lState = mController.State;
+			
 
-            // Rotate the character towards the direction of the camera. We always want
-            // him facing forward when moving
-            if (mController.State.Velocity.HorizontalMagnitude() > 0.01f)
-            {
-                float lAngle = mController.transform.forward.HorizontalAngleTo(mController.CameraTransform.forward);
-                mAngularVelocity.y = lAngle;
-            }
+			// If were in the midst of jumping, we want to add velocity based on 
+			// the magnitude of the controller. However, we don't add it we're heading back to idle
 
-            return mAngularVelocity;
-        }
+				Vector3 lBaseForward = mController.CameraTransform.forward;
+				if (!mController.UseInput) { lBaseForward = mController.transform.forward; }
+				
+				// Direction of the camera
+				Vector3 lCameraForward = lBaseForward;
+				lCameraForward.y = 0f;
+				lCameraForward.Normalize();
+				
+				// Create a quaternion that gets us from our world-forward to our camera direction.
+				// FromToRotation creates a quaternion using the shortest method which can sometimes
+				// flip the angle. LookRotation will attempt to keep the "up" direction "up".
+				Quaternion lFromCamera = Quaternion.LookRotation(lCameraForward);
+				
+				// Determine the avatar displacement direction. This isn't just
+				// normal movement forward, but includes movement to the side
+				Vector3 lMoveDirection = lFromCamera * lState.InputForward;
+				
+				// Allow the player to create an initial launch velocity if there isn't one
+				//if (!mControlEnabled && lState.InputMagnitudeTrend.Value != 0f && lState.GroundLaunchVelocity.magnitude == 0f)
+				//{
+				//    lState.GroundLaunchVelocity = lFromCamera * (lBaseForward * mMovementSpeed);
+				//}
+				
+				// Determine the max air speed
+//				Vector3 lMomentum = lState.GroundLaunchVelocity;
+				
+				float mMovementSpeed = 1f;
 
-        /// <summary>
-        /// Allows the motion to modify the velocity before it is applied.
-        /// </summary>
-        /// <returns></returns>
-        public override void CleanRootMotion(ref Vector3 rVelocityDelta, ref Quaternion rRotationDelta)
+				// Determine the air speed. We want the max of the momentum or control
+				// speed. This gives us smooth movement while running and jumping
+				float lControlSpeed =  mMovementSpeed * lState.InputMagnitudeTrend.Value;
+				
+//				float lAirSpeed = lMomentum.magnitude * lState.InputMagnitudeTrend.Value;
+//				lAirSpeed = Mathf.Max(lAirSpeed, lControlSpeed);
+				
+				// Combine our control velocity with momentum
+//				Vector3 lAirVelocity = Vector3.zero;
+				
+//				lAirVelocity += lMoveDirection * lAirSpeed;
+				
+				// Return the final velocity
+//				mVelocity = lAirVelocity;
+				mVelocity = lMoveDirection;
+
+			
+			return mVelocity;
+		}
+		
+		/// <summary>
+		/// Returns the current angular velocity of the motion
+		/// </summary>
+		protected override Vector3 DetermineAngularVelocity()
+		{
+//			mAngularVelocity = Vector3.zero;
+
+			ControllerState lState = mController.State;
+			
+			// Clear the rotation value
+			mAngularVelocity = Vector3.zero;
+			
+			float mRotationMin = 0.1f;
+			float mRotationSpeed = 90f;
+
+			Quaternion lBaseRotation = mController.CameraTransform.rotation;
+				
+			if (!mController.UseInput) { lBaseRotation = mController.transform.rotation; }
+					
+			// Determine the direction of the input relative to the camera
+			Vector3 lInputDirection = lBaseRotation * lState.InputForward;
+						
+			// Check how much we're rotating vs. the original launch forward. We'll only 
+			// rotate if we're changing direction drastically.
+			float lDeltaAngle = Mathf.Abs(NumberHelper.GetHorizontalAngle(mLaunchForward, lInputDirection));
+			if (mRotationMin > 0 && (lDeltaAngle > mRotationMin || Mathf.Abs(lState.InputFromCameraAngle) < 5f))
+			{
+				//mAngularVelocity.y = lState.InputFromAvatarAngle * mRotationSpeed;
+				mAngularVelocity.y = (lState.InputFromAvatarAngle / 90f) * mRotationSpeed;
+			}
+
+			return mAngularVelocity;
+		}
+		
+		/// <summary>
+		/// Allows the motion to modify the velocity before it is applied.
+		/// </summary>
+		/// <returns></returns>
+		public override void CleanRootMotion(ref Vector3 rVelocityDelta, ref Quaternion rRotationDelta)
         {
             rRotationDelta = Quaternion.identity;
         }

@@ -207,20 +207,25 @@ namespace com.ootii.Cameras
             bool lCollisionHit = UnityEngine.Physics.Linecast(rPosition, rTargetPosition, out sCollisionInfo, lPlayerLayerMask);
             if (lCollisionHit)
             {
-                // Now, test if the collision point is too close to our avatar. If
-                // it gets closer than the camera near plane our avatar will start culling itself.
-                // to fix this, we'll use the collider radius as a min distance.
-                float lDistance = NumberHelper.GetHorizontalDistance(sCollisionInfo.point, _Anchor.transform.position);
-                if (lDistance < _AnchorRadius + _Camera.nearClipPlane)
+                // Safety check in case the builder forgot to set the 'player' layer on
+                // the avatar. This way we don't collide with ourselves.
+                if (!sCollisionInfo.collider.isTrigger && sCollisionInfo.collider.gameObject.transform != _Anchor)
                 {
-                    // prevent the camera from moving
-                    rTargetPosition = transform.position;
-                    lReposition = false;
-                }
-                // Reposition the camera
-                else
-                {
-                    rTargetPosition = sCollisionInfo.point;
+                    // Now, test if the collision point is too close to our avatar. If
+                    // it gets closer than the camera near plane our avatar will start culling itself.
+                    // to fix this, we'll use the collider radius as a min distance.
+                    float lDistance = NumberHelper.GetHorizontalDistance(sCollisionInfo.point, _Anchor.transform.position);
+                    if (lDistance < _AnchorRadius + _Camera.nearClipPlane)
+                    {
+                        // prevent the camera from moving
+                        rTargetPosition = transform.position;
+                        lReposition = false;
+                    }
+                    // Reposition the camera
+                    else
+                    {
+                        rTargetPosition = sCollisionInfo.point;
+                    }
                 }
             }
 

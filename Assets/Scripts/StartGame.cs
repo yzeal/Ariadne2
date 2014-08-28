@@ -3,10 +3,10 @@ using System.Collections;
 
 public class StartGame : MonoBehaviour {
 
-	public Texture2D black;
-
 	public GUIStyle menuButton;
 	public GUIStyle menuTitle;
+
+	private Texture2D black;
 
 	private bool newGame;
 
@@ -29,6 +29,10 @@ public class StartGame : MonoBehaviour {
 		}else{
 			currentButton = 1;
 		}
+
+		black = new Texture2D(1,1);
+		black.SetPixel(0,0, new Color(0f,0f,0f));
+		black.Apply();
 
 	}
 	

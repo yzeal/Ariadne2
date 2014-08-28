@@ -15,6 +15,7 @@ public class Teleport : MonoBehaviour {
 //		GlobalVariables.Instance.currentLevel = nextLevel;
 //		if(GlobalVariables.Instance.autoSave) GlobalVariables.Instance.save();
 //		Application.LoadLevel(GlobalVariables.Instance.levelSequence[nextLevel]);
+//		GlobalVariables.Instance.saveSubtitles();
 		GlobalVariables.Instance.changeScene(nextLevel);
 	}
 }

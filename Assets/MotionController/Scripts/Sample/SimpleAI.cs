@@ -32,16 +32,16 @@ public class SimpleAI : MonoBehaviour
 
         if (transform.position.x >= -1)
         {
-            mController.MoveTowards(new Vector3(-30, 0, 48f));
+            mController.SetTargetPosition(new Vector3(-35, 0, 48f), 1f);
         }
         else if (transform.position.x <= -29)
         {
-            mController.MoveTowards(new Vector3(0, 0, 48f));
+            mController.SetTargetPosition(new Vector3(5, 0, 48f), 1f);
         }
         else if (transform.position.x < -15 && transform.position.x > -16)
         {
             MotionControllerMotion lJump = mController.GetMotion(0, typeof(Jump));
-            if (lJump != null) { mController.QueueMotion(0, lJump); }
+            if (lJump != null) { mController.ActivateMotion(lJump); }
         }
     }
 }

@@ -16,6 +16,8 @@ namespace com.ootii.AI.Controllers
     /// Handles the basic motion for getting the onto a 
     /// mid (0.75m) height object
     /// </summary>
+    [MotionTooltip("When the avatar is idle and facing the object, this motion allows the avatar " + 
+                   "to climb on top of a 'table high' object.")]
     public class ClimbMid : MotionControllerMotion
     {
         // Enum values for the motion
@@ -34,6 +36,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mMaxDistance = 0.4f;
+
+        [MotionTooltip("Maximum distance the avatar can be from the object before trying to climb onto it.")]
         public float MaxDistance
         {
             get { return mMaxDistance; }
@@ -45,6 +49,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mMinHeight = 0.5f;
+
+        [MotionTooltip("Minimum height of the object to climb onto.")]
         public float MinHeight
         {
             get { return mMinHeight; }
@@ -56,6 +62,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mMaxHeight = 1.0f;
+
+        [MotionTooltip("Maximum height of the object to climb onto.")]
         public float MaxHeight
         {
             get { return mMaxHeight; }
@@ -69,6 +77,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected Vector3 mExitPositionOffset = new Vector3(0f, 0.025f, 0f);
+
+        [MotionTooltip("When the avatar moves to the top of the ledge, an offset used to ensure the avatar lines up with the idle pose that follows.")]
         public Vector3 ExitPositionOffset
         {
             get { return mExitPositionOffset; }
@@ -82,6 +92,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected float mHandGrabOffset = 0.13f;
+
+        [MotionTooltip("Position offset from the avatar's middle grab where the left and right hands will be positioned.")]
         public float HandGrabOffset
         {
             get { return mHandGrabOffset; }
@@ -93,6 +105,8 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         [SerializeField]
         protected int mClimableLayer = 9;
+
+        [MotionTooltip("Any object that is to be climbed needs to be set to this user layer.")]
         public int ClimbableLayer
         {
             get { return mClimableLayer; }
@@ -149,6 +163,7 @@ namespace com.ootii.AI.Controllers
             mIsStartable = true;
             mIsGravityEnabled = false;
             mIsGroundedExpected = false;
+            mIsNavMeshChangeExpected = true;
         }
 
         /// <summary>
@@ -162,6 +177,7 @@ namespace com.ootii.AI.Controllers
             mIsStartable = true;
             mIsGravityEnabled = false;
             mIsGroundedExpected = false;
+            mIsNavMeshChangeExpected = true;
         }
 
         /// <summary>
@@ -184,7 +200,6 @@ namespace com.ootii.AI.Controllers
         {
             if (!mIsStartable) { return false; }
             if (!mController.IsGrounded) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
             if (!InputManager.IsJustPressed("Jump")) { return false; }
 
             // Edge info
@@ -254,6 +269,7 @@ namespace com.ootii.AI.Controllers
         {
             mIsActive = false;
             mIsStartable = true;
+            mDeactivationTime = Time.time;
             mVelocity = Vector3.zero;
             mAngularVelocity = Vector3.zero;
 
@@ -462,14 +478,18 @@ namespace com.ootii.AI.Controllers
 
             // Shoot forward and ensure below the edge is blocked
             lRayStart = lRoot.position + new Vector3(0f, lEdgeBottom, 0f);
-            if (!UnityEngine.Physics.Raycast(lRayStart, mController.transform.forward, out sCollisionInfo, lTargetDistance, lIsClimbableMask))
+
+            //TT if (!UnityEngine.Physics.Raycast(lRayStart, mController.transform.forward, out sCollisionInfo, lTargetDistance, lIsClimbableMask))
+            if (!mController.SafeRaycast(lRayStart, mController.transform.forward, ref sCollisionInfo, lTargetDistance, lIsClimbableMask))
             {
                 return false;
             }
 
             // Shoot forward and ensure above the edge is open
             lRayStart = lRoot.position + new Vector3(0f, lEdgeTop, 0f);
-            if (UnityEngine.Physics.Raycast(lRayStart, mController.transform.forward, out sCollisionInfo, lTargetDistance, lIsClimbableMask))
+
+            //TT if (UnityEngine.Physics.Raycast(lRayStart, mController.transform.forward, out sCollisionInfo, lTargetDistance, lIsClimbableMask))
+            if (mController.SafeRaycast(lRayStart, mController.transform.forward, ref sCollisionInfo, lTargetDistance, lIsClimbableMask))
             {
                 return false;
             }
@@ -480,7 +500,9 @@ namespace com.ootii.AI.Controllers
             // we shoot a ray down
             lRayStart = sCollisionInfo.point + (mController.transform.forward * 0.01f);
             lRayStart.y = lRoot.position.y + lEdgeTop;
-            if (!UnityEngine.Physics.Raycast(lRayStart, -mController.transform.up, out sCollisionInfo, lEdgeTop - lEdgeBottom + 0.01f, lIsClimbableMask))
+            
+            //TT if (!UnityEngine.Physics.Raycast(lRayStart, -mController.transform.up, out sCollisionInfo, lEdgeTop - lEdgeBottom + 0.01f, lIsClimbableMask))
+            if (!mController.SafeRaycast(lRayStart, -mController.transform.up, ref sCollisionInfo, lEdgeTop - lEdgeBottom + 0.01f, lIsClimbableMask))
             {
                 return false;
             }
@@ -490,7 +512,8 @@ namespace com.ootii.AI.Controllers
             // last ray (which was shot down).
             lRayStart = lRoot.position;
             lRayStart.y = sCollisionInfo.point.y - 0.01f;
-            if (!UnityEngine.Physics.Raycast(lRayStart, mController.transform.forward, out sCollisionInfo, lTargetDistance, lIsClimbableMask))
+            //TT if (!UnityEngine.Physics.Raycast(lRayStart, mController.transform.forward, out sCollisionInfo, lTargetDistance, lIsClimbableMask))
+            if (!mController.SafeRaycast(lRayStart, mController.transform.forward, ref sCollisionInfo, lTargetDistance, lIsClimbableMask))
             {
                 return false;
             }
@@ -501,14 +524,18 @@ namespace com.ootii.AI.Controllers
             {
                 // Check the right hand
                 Vector3 lRightHandPosition = lRayStart + (Controller.transform.rotation * new Vector3(mHandGrabOffset, 0f, 0f));
-                if (!UnityEngine.Physics.Raycast(lRightHandPosition, Controller.transform.forward, lTargetDistance, lIsClimbableMask))
+                
+                //TT if (!UnityEngine.Physics.Raycast(lRightHandPosition, Controller.transform.forward, lTargetDistance, lIsClimbableMask))
+                if (!mController.SafeRaycast(lRightHandPosition, Controller.transform.forward, lTargetDistance, lIsClimbableMask))
                 {
                     return false;
                 }
 
                 // Check the left hand
                 Vector3 lLeftHandPosition = lRayStart + (Controller.transform.rotation * new Vector3(-mHandGrabOffset, 0f, 0f));
-                if (!UnityEngine.Physics.Raycast(lLeftHandPosition, Controller.transform.forward, lTargetDistance, lIsClimbableMask))
+                
+                //TT if (!UnityEngine.Physics.Raycast(lLeftHandPosition, Controller.transform.forward, lTargetDistance, lIsClimbableMask))
+                if (!mController.SafeRaycast(lLeftHandPosition, Controller.transform.forward, lTargetDistance, lIsClimbableMask))
                 {
                     return false;
                 }

@@ -19,22 +19,12 @@ namespace com.ootii.AI.Controllers
     /// 
     /// When running to the side, the avatar typically rotates around the camera.
     /// </summary>
+    [MotionTooltip("A forward walk/run blend that allows the avatar to rotate towards the camera. Best when used with the Adventure Camera.")]
     public class AdventureForward : MotionControllerMotion
     {
         // Enum values for the motion
         public const int PHASE_UNKNOWN = 0;
         public const int PHASE_START = 400;
-
-        /// <summary>
-        /// Minimum 
-        /// </summary>
-        [SerializeField]
-        protected float mMinWallSlideAngle = 30f;
-        public float MinWallSlideInputAngle
-        {
-            get { return mMinWallSlideAngle; }
-            set { mMinWallSlideAngle = value; }
-        }
 
         /// <summary>
         /// Default constructor
@@ -122,11 +112,10 @@ namespace com.ootii.AI.Controllers
             // attempt to move the avatar with some input/AI.
             if (!mIsStartable) { return false; }
             if (!mController.IsGrounded) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
 
             ControllerState lState = mController.State;
             if (lState.InputMagnitudeTrend.Value < 0.1f) { return false; }
-            if (lState.IsForwardPathBlocked && Mathf.Abs(lState.InputFromAvatarAngle) < mMinWallSlideAngle) { return false; }
+            
             if (lState.Stance != EnumControllerStance.TRAVERSAL) { return false; }
                 
             return true;
@@ -144,11 +133,10 @@ namespace com.ootii.AI.Controllers
             if (!IsInRunState && mController.GetAnimatorMotionPhase(mMotionLayer.AnimatorLayerIndex) != AdventureForward.PHASE_START) { return false; }
 
             if (!mController.IsGrounded) { return false; }
-            if (mController.IsMovingToTarget) { return false; }
 
             ControllerState lState = mController.State;
             if (lState.InputMagnitudeTrend.Average == 0f) { return false; }
-            if (lState.IsForwardPathBlocked && Mathf.Abs(lState.InputFromAvatarAngle) < mMinWallSlideAngle) { return false; }
+            
             if (lState.Stance != EnumControllerStance.TRAVERSAL) { return false; }
 
             return true;
@@ -200,6 +188,19 @@ namespace com.ootii.AI.Controllers
                 return;
             }
 
+            // If we're blocked, we're going to modify the speed
+            // in order to blend into and out of a stop
+            if (mController.State.IsForwardPathBlocked)
+            {
+                float lAngle = Vector3.Angle(mController.State.ForwardPathBlockNormal, mController.transform.forward);
+
+                float lDiff = 180f - lAngle;
+                float lSpeed = mController.State.InputMagnitudeTrend.Value * (lDiff / mController.ForwardBumperBlendAngle);
+
+                mController.State.InputMagnitudeTrend.Replace(lSpeed);
+            }
+
+            // If we're running, control the speed and direction
             if (IsInRunState)
             {
                 DetermineAngularVelocity();

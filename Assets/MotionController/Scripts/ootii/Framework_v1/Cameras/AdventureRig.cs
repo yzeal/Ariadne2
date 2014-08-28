@@ -252,6 +252,16 @@ namespace com.ootii.Cameras
             mViewVelocityX = 0.0001f;
         }
 
+		//TESTI
+		public void ResetCamera(){
+			mTransitionDistance = _Distance;
+			mSideTransitionDistance = 0f;
+			
+
+			mViewVelocityX = 0.0001f;
+
+		}
+
         /// <summary>
         /// Called once per frame to update objects. This happens after FixedUpdate().
         /// Reactions to calculations should be handled here.
@@ -263,6 +273,7 @@ namespace com.ootii.Cameras
 
             float lViewX = 0f;
             float lViewY = 0f;
+
 
             // Determine if we're simply aiming and follow the target
             if (mMode == EnumCameraMode.FIRST_PERSON)
@@ -397,7 +408,7 @@ namespace com.ootii.Cameras
             Vector3 lAvatarRight = Vector3.zero;
 
             // If we're aiming, we shift into first person mode
-            if (mMode == EnumCameraMode.FIRST_PERSON)
+			if (mMode == EnumCameraMode.FIRST_PERSON)
             {
                 // Don't use smooth movement since we need the camera to
                 // be incredibly precise. If we do, it gets pretty wobbly as the
