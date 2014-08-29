@@ -17,6 +17,11 @@ public class Door : MonoBehaviour {
 	private Vector3 endpos;//TEMP
 	private Vector3 startpos;
 
+	public Color offColor;
+	public Color onColor;
+	
+	private Material mat;
+
 	// Use this for initialization
 	void Start () {
 
@@ -26,17 +31,26 @@ public class Door : MonoBehaviour {
 			open = true;
 		}
 
+		mat = GetComponent<MeshRenderer>().material;
+
+		if(bodenschalter.Length == 1){
+			onColor = bodenschalter[0].onColor;
+			offColor = bodenschalter[0].offColor;
+		}
+
+		mat.SetColor("_Color", offColor);
+
 		switch(openDirection){
 //			case DoorDirection.UP: endpos = transform.position + Vector3.up*transform.localScale.y; break;
 //			case DoorDirection.DOWN: endpos = transform.position + Vector3.down*transform.localScale.y; break;
 //			case DoorDirection.LEFT: endpos = transform.position + Vector3.left*transform.localScale.y; break;
 //			default: endpos = transform.position + Vector3.right*transform.localScale.y; break;
-			case DoorDirection.UP: endpos = transform.position + Vector3.up*openDistance*5f; break;
-			case DoorDirection.DOWN: endpos = transform.position + Vector3.down*openDistance*5f; break;
-			case DoorDirection.LEFT: endpos = transform.position + Vector3.left*openDistance*5f; break;
-			case DoorDirection.FWD: endpos = transform.position + transform.forward*openDistance*5f; break;
-			case DoorDirection.BWD: endpos = transform.position - transform.forward*openDistance*5f; break;
-			default: endpos = transform.position + Vector3.right*openDistance*5f; break;
+			case DoorDirection.UP: endpos = transform.position + transform.up*openDistance*5.5f; break;
+			case DoorDirection.DOWN: endpos = transform.position - transform.up*openDistance*5.5f; break;
+			case DoorDirection.LEFT: endpos = transform.position - transform.right*openDistance*5.5f; break;
+			case DoorDirection.FWD: endpos = transform.position + transform.forward*openDistance*5.5f; break;
+			case DoorDirection.BWD: endpos = transform.position - transform.forward*openDistance*5.5f; break;
+			default: endpos = transform.position + transform.right*openDistance*5.5f; break;
 		}
 
 		startpos = transform.position;
@@ -55,7 +69,7 @@ public class Door : MonoBehaviour {
 		}
 
 		if(open && transform.position != endpos){
-			if(GlobalVariables.Instance.autoSave){
+			if(GlobalVariables.Instance != null && GlobalVariables.Instance.autoSave){
 				PlayerPrefs.SetInt(Application.loadedLevelName + "Door" + id, 1);
 			}
 			transform.position = Vector3.Lerp(transform.position, endpos, Time.deltaTime);//TEMP
@@ -63,11 +77,17 @@ public class Door : MonoBehaviour {
 		}
 
 		if(!open && transform.position != startpos){
-			if(GlobalVariables.Instance.autoSave){
+			if(GlobalVariables.Instance != null && GlobalVariables.Instance.autoSave){
 				PlayerPrefs.SetInt(Application.loadedLevelName + "Door" + id, 0);
 			}
 			transform.position = Vector3.Lerp(transform.position, startpos, Time.deltaTime);//TEMP
 //			Debug.Log("Tür " + id + " geschlossen.");
+		}
+
+		if(open){
+			mat.SetColor("_Color", onColor);
+		}else{
+			mat.SetColor("_Color", offColor);
 		}
 
 	}

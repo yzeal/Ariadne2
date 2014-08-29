@@ -19,7 +19,7 @@ public class CrawlArea : MonoBehaviour {
 			justActivated = true;
 			GlobalVariables.Instance.crawling = true;
 
-			camRig.transform.position = player.transform.position - 1.2f * player.transform.forward;
+//			camRig.transform.position = player.transform.position - 1.2f * player.transform.forward;
 		}
 	}
 
@@ -33,7 +33,8 @@ public class CrawlArea : MonoBehaviour {
 
 	void OnTriggerStay(Collider other){
 		if(other.CompareTag("Player")){
-			camRig.transform.position = player.transform.position + 0.2f * player.transform.up  - 1.2f * player.transform.forward;
+			camRig.transform.position = player.transform.position - 1.2f * player.transform.forward;
+//			camRig.transform.position = player.transform.position;
 		}
 	}
 

@@ -1,25 +1,16 @@
 fileFormatVersion: 2
-guid: bdffbd936703a6548ac100fbdb25f30d
+guid: e42fb560eec67c74e8fc44e00bfc49cb
 ModelImporter:
   serializedVersion: 16
   fileIDToRecycleName:
-    100000: body.001_Cube.005_Material.004
-    100002: body.001_Cube.005_Material.004_NONE
-    100004: //RootNode
-    100006: default
-    400000: body.001_Cube.005_Material.004
-    400002: body.001_Cube.005_Material.004_NONE
-    400004: //RootNode
-    400006: default
-    2300000: body.001_Cube.005_Material.004
-    2300002: body.001_Cube.005_Material.004_NONE
-    2300004: default
-    3300000: body.001_Cube.005_Material.004
-    3300002: body.001_Cube.005_Material.004_NONE
-    3300004: default
-    4300000: body.001_Cube.005_Material.004
-    4300002: body.001_Cube.005_Material.004_NONE
-    4300004: default
+    100000: default
+    100002: //RootNode
+    400000: default
+    400002: //RootNode
+    2300000: default
+    3300000: default
+    4300000: default
+    6400000: default
     9500000: //RootNode
   materials:
     importMaterials: 1
@@ -42,7 +33,7 @@ ModelImporter:
     lODScreenPercentages: []
     globalScale: 1
     meshCompression: 0
-    addColliders: 0
+    addColliders: 1
     importBlendShapes: 1
     swapUVChannels: 0
     generateSecondaryUV: 0

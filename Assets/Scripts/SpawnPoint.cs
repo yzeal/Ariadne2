@@ -19,7 +19,13 @@ public class SpawnPoint : MonoBehaviour {
 		if(spawnPointDirection == playerDirection && spawnPointLevel == playerLevel){
 			GameObject player = GameObject.FindWithTag("Player");
 //			mainCameraRig.transform.rotation = transform.rotation;
-			player.transform.position = transform.position;
+			Debug.Log("spawn " + GlobalVariables.Instance.savePoint);
+			if(GlobalVariables.Instance.savePoint != Vector3.zero){
+				player.transform.position = GlobalVariables.Instance.savePoint;
+				Debug.Log("sp");
+			}else{
+				player.transform.position = transform.position;
+			}
 			player.transform.rotation = transform.rotation;
 //			GameObject mainCameraRig = GameObject.FindWithTag("MainCameraRig");
 //			mainCameraRig.transform.position = transform.position - 20f * player.transform.forward;

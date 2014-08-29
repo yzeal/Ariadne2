@@ -28,6 +28,8 @@ public class GlobalVariables : MonoBehaviour {
 	public bool toggleCrawl;
 	public bool crawling;
 
+	public Vector3 savePoint = Vector3.zero;
+
 	public static GlobalVariables Instance { get; private set; }
 
 	private DialogHandler dialogHandler;
@@ -132,6 +134,7 @@ public class GlobalVariables : MonoBehaviour {
 
 	public void changeScene(int nLevel){
 		crawling = false;
+		savePoint = Vector3.zero;
 		currentLevel = nLevel;
 		if(autoSave) PlayerPrefs.SetInt("CurrentLevel", nLevel);
 		Application.LoadLevel(levelSequence[nLevel]);

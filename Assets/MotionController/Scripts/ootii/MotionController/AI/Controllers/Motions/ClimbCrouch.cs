@@ -530,6 +530,7 @@ namespace com.ootii.AI.Controllers
                 // Convert the angle into a velocity so it can be processed later
                 float lNewAngle = Mathf.LerpAngle(lAngle, lTargetWallAngle, mArrivalLerp);
                 mAngularVelocity = new Vector3(0f, (lNewAngle - lAngle) / Time.fixedDeltaTime, 0f);
+
             }
             // If we're at the idle, allow the player to climb to the top
             else if (lStateName == "ClimbCrouch-SM.ClimbCrouchPose")
@@ -859,6 +860,7 @@ namespace com.ootii.AI.Controllers
         {
             float lSideDistance = Mathf.Abs(rOffset);
             Transform lRoot = mController.transform;
+
 
             // Shoot a ray to the left to see if there is room to move
             Vector3 lRayStart = lRoot.position;
