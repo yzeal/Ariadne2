@@ -88,6 +88,11 @@ public class GlobalVariables : MonoBehaviour {
 		exitLevel = (ExitLevel) PlayerPrefs.GetInt("ExitLevel");
 		currentLevel = PlayerPrefs.GetInt("CurrentLevel");
 
+		if(PlayerPrefs.GetInt("Crawling") != 0){
+			crawling = true;
+			toggleCrawl = true;
+		}
+
 
 		for(int i = 0; i < 5; i++){
 			levelSequence[i] = PlayerPrefs.GetString("LevelSequence" + i);
@@ -116,6 +121,10 @@ public class GlobalVariables : MonoBehaviour {
 		PlayerPrefs.SetInt("CurrentLevel", currentLevel);
 		PlayerPrefs.SetFloat("MinotaurusSpeed", minotaurusSpeed);
 
+		if(crawling){
+			PlayerPrefs.SetInt("Crawling", 1);
+		}
+
 		for(int i = 0; i < 5; i++){
 			PlayerPrefs.SetString("LevelSequence" + i, levelSequence[i]);
 		}
@@ -133,7 +142,7 @@ public class GlobalVariables : MonoBehaviour {
 //	}
 
 	public void changeScene(int nLevel){
-		crawling = false;
+//		crawling = false;
 		savePoint = Vector3.zero;
 		currentLevel = nLevel;
 		if(autoSave) PlayerPrefs.SetInt("CurrentLevel", nLevel);
