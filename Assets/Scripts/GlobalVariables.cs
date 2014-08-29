@@ -12,6 +12,8 @@ public enum ExitLevel{
 
 public class GlobalVariables : MonoBehaviour {
 
+	public int startLevel;
+
 //	public bool[] switches;
 	public bool deleteProgressAtStart; //zum Testen
 	public bool autoSave;

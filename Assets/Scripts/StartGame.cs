@@ -3,6 +3,8 @@ using System.Collections;
 
 public class StartGame : MonoBehaviour {
 
+
+
 	public GUIStyle menuButton;
 	public GUIStyle menuTitle;
 
@@ -101,7 +103,7 @@ public class StartGame : MonoBehaviour {
 
 			GlobalVariables.Instance.load();
 
-			Application.LoadLevel(GlobalVariables.Instance.levelSequence[4]);
+			Application.LoadLevel(GlobalVariables.Instance.levelSequence[GlobalVariables.Instance.startLevel]);
 			
 			foreach(string l in GlobalVariables.Instance.levelSequence){
 				Debug.Log("Level: " + l);
