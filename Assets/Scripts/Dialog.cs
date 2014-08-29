@@ -57,8 +57,10 @@ public class Dialog : MonoBehaviour {
 				if(currentText < times.Length - 1 && audio.time > times[currentText+1]){
 					currentText++;
 				}
-				GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height*0.1f), schwarz, ScaleMode.StretchToFill);
-				GUI.Label(new Rect(Screen.width*0.05f, 0f, Screen.width*0.9f, Screen.height*0.1f), texts[currentText], textStyle);
+//				GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height*0.1f), schwarz, ScaleMode.StretchToFill);
+//				GUI.Label(new Rect(Screen.width*0.05f, 0f, Screen.width*0.9f, Screen.height*0.1f), texts[currentText], textStyle);
+				GUI.DrawTexture(new Rect(0f, Screen.height*0.9f, Screen.width, Screen.height*0.1f), schwarz, ScaleMode.StretchToFill);
+				GUI.Label(new Rect(Screen.width*0.05f, Screen.height*0.9f, Screen.width*0.9f, Screen.height*0.1f), texts[currentText], textStyle);
 			}else{
 				Debug.Log("Untertitel: Vorbei.");
 //				if(GlobalVariables.Instance.autoSave)
