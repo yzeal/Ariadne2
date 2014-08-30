@@ -531,6 +531,27 @@ namespace com.ootii.AI.Controllers
                 float lNewAngle = Mathf.LerpAngle(lAngle, lTargetWallAngle, mArrivalLerp);
                 mAngularVelocity = new Vector3(0f, (lNewAngle - lAngle) / Time.fixedDeltaTime, 0f);
 
+				// It's possible that we haven't arrived because we can't shift into the position to the
+				// left or the right. This happens if something is blocking us. That said, if we don't require
+				// any y movement, we could consider ourselves done
+				Debug.Log("x: " + mVelocity.x + "   y: " + mVelocity.y + "   z: " + mVelocity.z);
+				if (mVelocity.y == 0f && (mVelocity.x != 0f || mVelocity.z != 0f))
+				{
+					float lDistance = Vector3.Distance(mController.transform.position, mTargetPosition);
+					if (lDistance < 0.1f)
+					{
+						mTargetPosition = mController.transform.position;
+					}
+					else
+					{
+						mHasArrived = true;
+						mPhase = ClimbCrouch.PHASE_TO_FALL;
+						mController.SetAnimatorMotionPhase(mAnimatorLayerIndex, ClimbCrouch.PHASE_TO_FALL);
+					}
+				}
+
+
+
             }
             // If we're at the idle, allow the player to climb to the top
             else if (lStateName == "ClimbCrouch-SM.ClimbCrouchPose")
