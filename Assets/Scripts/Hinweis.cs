@@ -8,13 +8,25 @@ public class Hinweis : MonoBehaviour {
 	public Color offColor;
 	public Color onColor;
 
-	public MeshRenderer hinweisMesh;
-
 	private bool on;
+
+	private Material mat;
 
 	// Use this for initialization
 	void Start () {
 
+		mat = GetComponentInChildren<MeshRenderer>().material;
+
+		if(bodenschalter.Length > 0){
+			onColor = bodenschalter[0].onColor;
+			offColor = bodenschalter[0].offColor;
+		}
+
+		if(on){
+			mat.SetColor("_Color", onColor);
+		}else{
+			mat.SetColor("_Color", offColor);
+		}
 	}
 	
 	// Update is called once per frame
@@ -28,9 +40,9 @@ public class Hinweis : MonoBehaviour {
 		}
 
 		if(on){
-			hinweisMesh.material.SetColor("_Color", onColor);
+			mat.SetColor("_Color", onColor);
 		}else{
-			hinweisMesh.material.SetColor("_Color", offColor);
+			mat.SetColor("_Color", offColor);
 		}
 	}
 }

@@ -38,7 +38,11 @@ public class Door : MonoBehaviour {
 			offColor = bodenschalter[0].offColor;
 		}
 
-		mat.SetColor("_Color", offColor);
+		if(open){
+			mat.SetColor("_Color", onColor);
+		}else{
+			mat.SetColor("_Color", offColor);
+		}
 
 		switch(openDirection){
 //			case DoorDirection.UP: endpos = transform.position + Vector3.up*transform.localScale.y; break;

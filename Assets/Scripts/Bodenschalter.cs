@@ -15,6 +15,8 @@ public class Bodenschalter : MonoBehaviour {
 	public Color onColor;
 
 	private bool justActivated;
+	private Material matBoden;
+	private Material matDach;
 
 	// Use this for initialization
 	void Start () {
@@ -28,8 +30,11 @@ public class Bodenschalter : MonoBehaviour {
 		partikelOben.startColor = onColor;
 		partikelUnten.startColor = onColor;
 
-		bodenPlatte.GetComponent<MeshRenderer>().material.SetColor("_Color", offColor);
-		dachPlatte.GetComponent<MeshRenderer>().material.SetColor("_Color", offColor);
+		matDach = dachPlatte.GetComponent<MeshRenderer>().material;
+		matBoden = bodenPlatte.GetComponent<MeshRenderer>().material;
+
+		matBoden.SetColor("_Color", offColor);
+		matDach.SetColor("_Color", offColor);
 
 		justActivated = false;
 	}
@@ -37,13 +42,13 @@ public class Bodenschalter : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if(on){
-			bodenPlatte.GetComponent<MeshRenderer>().material.SetColor("_Color", onColor);
-			dachPlatte.GetComponent<MeshRenderer>().material.SetColor("_Color", onColor);
+			matBoden.SetColor("_Color", onColor);
+			matDach.SetColor("_Color", onColor);
 			partikelOben.Play();
 			partikelUnten.Play();
 		}else{
-			bodenPlatte.GetComponent<MeshRenderer>().material.SetColor("_Color", offColor);
-			dachPlatte.GetComponent<MeshRenderer>().material.SetColor("_Color", offColor);
+			matBoden.SetColor("_Color", offColor);
+			matDach.SetColor("_Color", offColor);
 			partikelOben.Stop();
 			partikelOben.Clear();
 			partikelUnten.Stop();
