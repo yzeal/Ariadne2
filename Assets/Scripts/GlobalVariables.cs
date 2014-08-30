@@ -144,6 +144,7 @@ public class GlobalVariables : MonoBehaviour {
 
 	public void changeScene(int nLevel){
 //		crawling = false;
+		Debug.Log("Change Scene: " + nLevel);
 		savePoint = Vector3.zero;
 		currentLevel = nLevel;
 		if(autoSave) PlayerPrefs.SetInt("CurrentLevel", nLevel);
