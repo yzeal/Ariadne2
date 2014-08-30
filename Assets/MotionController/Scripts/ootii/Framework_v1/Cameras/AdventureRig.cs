@@ -615,7 +615,9 @@ namespace com.ootii.Cameras
             }
 
             // Adjust for collision if we need to 
-            HandleCollision(mAnchorPosition, ref mNewRigPosition);
+			if(mMode != EnumCameraMode.CRAWLING){
+            	HandleCollision(mAnchorPosition, ref mNewRigPosition);
+			}
 
             // Set the adjusted position
             transform.position = mNewRigPosition;

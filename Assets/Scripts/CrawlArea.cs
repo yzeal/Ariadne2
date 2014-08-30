@@ -17,7 +17,7 @@ public class CrawlArea : MonoBehaviour {
 		if(other.CompareTag("Player") && !justActivated){
 			GlobalVariables.Instance.toggleCrawl = true;
 			justActivated = true;
-			GlobalVariables.Instance.crawling = true;
+//			GlobalVariables.Instance.crawling = true;
 
 //			camRig.transform.position = player.transform.position - 1.2f * player.transform.forward;
 		}
@@ -27,16 +27,16 @@ public class CrawlArea : MonoBehaviour {
 		if(other.CompareTag("Player")){
 			GlobalVariables.Instance.toggleCrawl = true;
 			justActivated = false;
-			GlobalVariables.Instance.crawling = false;
+//			GlobalVariables.Instance.crawling = false;
 		}
 	}
 
-	void OnTriggerStay(Collider other){
-		if(other.CompareTag("Player")){
-			camRig.transform.position = player.transform.position - 1.2f * player.transform.forward;
-//			camRig.transform.position = player.transform.position;
-		}
-	}
+//	void OnTriggerStay(Collider other){
+//		if(other.CompareTag("Player")){
+//			camRig.transform.position = player.transform.position - 1.2f * player.transform.forward;
+////			camRig.transform.position = player.transform.position;
+//		}
+//	}
 
 
 

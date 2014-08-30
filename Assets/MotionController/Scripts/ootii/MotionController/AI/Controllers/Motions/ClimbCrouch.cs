@@ -669,7 +669,8 @@ namespace com.ootii.AI.Controllers
                     //mAvatarContactPosition = Vector3.zero;
                 }
 
-                if (lStateTime >= 1.0f) { Deactivate(); }
+//                if (lStateTime >= 1.0f) { Deactivate(); }Deactivate();
+				Deactivate();
             }
             // Drops us out of a climb so we can fall
             else if (lStateName == "ClimbCrouch-SM.ClimbCrouchToJumpFall")
