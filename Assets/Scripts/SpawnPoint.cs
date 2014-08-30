@@ -4,25 +4,20 @@ using com.ootii.Cameras;
 //using com.ootii.AI.Controllers;
 
 public class SpawnPoint : MonoBehaviour {
-
-	public int currentLevelNumber;
+	
 	public ExitDirection spawnPointDirection;
 	public ExitLevel spawnPointLevel;
 
-//	public GameObject mainCameraRig;
-
-	// Use this for initialization
-	void Start () {
+	
+	void Awake () {
 		ExitDirection playerDirection = GlobalVariables.Instance.exitDirection;
 		ExitLevel playerLevel = GlobalVariables.Instance.exitLevel;
 
 		if(spawnPointDirection == playerDirection && spawnPointLevel == playerLevel){
 			GameObject player = GameObject.FindWithTag("Player");
 //			mainCameraRig.transform.rotation = transform.rotation;
-			Debug.Log("spawn " + GlobalVariables.Instance.savePoint);
 			if(GlobalVariables.Instance.savePoint != Vector3.zero){
 				player.transform.position = GlobalVariables.Instance.savePoint;
-				Debug.Log("sp");
 			}else{
 				player.transform.position = transform.position;
 			}
@@ -31,7 +26,6 @@ public class SpawnPoint : MonoBehaviour {
 //			mainCameraRig.transform.position = transform.position - 20f * player.transform.forward;
 			GameObject.FindWithTag("MainCameraRig").transform.position = transform.position - 20f * player.transform.forward;
 
-//			GlobalVariables.Instance.currentLevel = currentLevelNumber;
 			if(GlobalVariables.Instance.autoSave) GlobalVariables.Instance.save();
 			Debug.Log("Gespawnt: " + spawnPointDirection + ", " + spawnPointLevel);
 		}

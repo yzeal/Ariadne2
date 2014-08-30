@@ -6,6 +6,8 @@ public class Bodenschalter : MonoBehaviour {
 	public int id;
 	public bool on;
 
+	public bool save = true; //Schalter, die Wände verschieben, sollten nie gespeichert werden, weil manche Level sonst vom Eingang aus nicht mehr lösbar sind.
+
 	public GameObject bodenPlatte;
 	public GameObject dachPlatte;
 	public ParticleSystem partikelOben;
@@ -62,12 +64,12 @@ public class Bodenschalter : MonoBehaviour {
 		if(!justActivated && !on && other.CompareTag("Player")){
 //		if(!on && other.CompareTag("Player")){
 			on = true;
-			if(GlobalVariables.Instance.autoSave){
+			if(save && GlobalVariables.Instance.autoSave){
 				PlayerPrefs.SetInt(Application.loadedLevelName + "Switch" + id, 1);
 			}
 		}else
 
-		if(!justActivated && on && other.CompareTag("Player")){
+		if(save && !justActivated && on && other.CompareTag("Player")){
 //		if(on && other.CompareTag("Player")){
 				on = false;
 				if(GlobalVariables.Instance.autoSave){

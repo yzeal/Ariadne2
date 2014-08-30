@@ -71,7 +71,6 @@ public class GlobalVariables : MonoBehaviour {
 
 
 		if(Input.GetKeyDown("p")){
-			crawling = true;
 			toggleCrawl = true;
 		}
 	}
@@ -104,7 +103,7 @@ public class GlobalVariables : MonoBehaviour {
 			newGame = true;
 			currentLevel = 0;
 			for(int i = 0; i < 4; i++){
-				int supplevel = Random.Range(0, 1); //TODO mehr als 2 sublevel! TEMP: nur einer
+				int supplevel = Random.Range(0, 1); //TODO Mehr Levelvarianten! TEMP: nur einer
 				levelSequence[i] = "level" + i + "-" + supplevel;
 			}
 			levelSequence[4] = "level4";

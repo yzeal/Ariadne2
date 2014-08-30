@@ -27,6 +27,11 @@ namespace com.ootii.AI.Controllers
 
 		protected Vector3 mLaunchForward = Vector3.zero;
 
+		/// <summary>
+		/// Keeps track the the camera mode to revert to
+		/// </summary>
+		private int mSavedCameraMode = EnumCameraMode.THIRD_PERSON_FOLLOW;
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -114,6 +119,15 @@ namespace com.ootii.AI.Controllers
         /// <param name="rPrevMotion">Motion that this motion is taking over from</param>
         public override bool Activate(MotionControllerMotion rPrevMotion)
         {
+
+			// Store the last camera mode and force it to a fixed view.
+			// We do this to always keep the camera behind the player
+			if (mController.UseInput && mController.CameraRig != null)
+			{
+				mSavedCameraMode = mController.CameraRig.Mode;				
+				mController.CameraRig.TransitionToMode(EnumCameraMode.CRAWLING);
+			}
+
             // Force the character's stance to change
             mController.Stance = EnumControllerStance.SNEAK;
 
@@ -134,6 +148,13 @@ namespace com.ootii.AI.Controllers
         /// </summary>
         public override void Deactivate()
         {
+
+			// Return the camera to what it was
+			if (mController.CameraRig.Mode == EnumCameraMode.CRAWLING)
+			{
+				mController.CameraRig.TransitionToMode(mSavedCameraMode);
+			}
+
             // If we're still flagged as in the sneak stance, move out
             if (mController.Stance == EnumControllerStance.SNEAK)
             {

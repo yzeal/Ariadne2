@@ -103,6 +103,7 @@ public class StartGame : MonoBehaviour {
 
 			GlobalVariables.Instance.load();
 
+			GlobalVariables.Instance.currentLevel = GlobalVariables.Instance.startLevel;
 			Application.LoadLevel(GlobalVariables.Instance.levelSequence[GlobalVariables.Instance.startLevel]);
 			
 			foreach(string l in GlobalVariables.Instance.levelSequence){

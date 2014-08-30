@@ -220,7 +220,7 @@ namespace com.ootii.Input
             }
             // Determines if the character should sprint forward
             else if (rAction == "Sprint")
-            {
+			{
 				if(GlobalVariables.Instance != null && GlobalVariables.Instance.crawling){
 					return false;
 				}
@@ -273,6 +273,7 @@ namespace com.ootii.Input
             }
             else if (rAction == "Aiming")
             {
+
 				if(GlobalVariables.Instance != null && GlobalVariables.Instance.crawling){
 					return false;
 				}
@@ -293,6 +294,11 @@ namespace com.ootii.Input
                         return true;
                     }
                 }
+//				else if(GlobalVariables.Instance != null && GlobalVariables.Instance.crawling){
+//					mOldLTrigger = true;
+//					Debug.Log ("aiming");
+//					return true;
+//				}
                 else
                 {
                     mOldLTrigger = false;
@@ -300,10 +306,6 @@ namespace com.ootii.Input
             }
             else if (rAction == "Release")
             {
-				if(GlobalVariables.Instance != null && GlobalVariables.Instance.crawling){
-					return false;
-				}
-
                 if (UnityEngine.Input.GetKeyDown(KeyCode.LeftShift)) { return true; }
                 if (mIsXboxControllerEnabled && UnityEngine.Input.GetButtonDown("WXButton3")) { return true; }
             }
@@ -311,7 +313,12 @@ namespace com.ootii.Input
             {
 //                if (UnityEngine.Input.GetKeyDown(KeyCode.T)) { return true; }
 
-				if (GlobalVariables.Instance != null && GlobalVariables.Instance.toggleCrawl) {GlobalVariables.Instance.toggleCrawl = false; return true;}
+				if (GlobalVariables.Instance != null && GlobalVariables.Instance.toggleCrawl) {
+					GlobalVariables.Instance.toggleCrawl = false; 
+					GlobalVariables.Instance.crawling = GlobalVariables.Instance.crawling ? false : true; 
+					Debug.Log("crawling: " + GlobalVariables.Instance.crawling);
+					return true;
+				}
 
 //				if(GlobalVariables.Instance != null && GlobalVariables.Instance.crawling){
 //					return false;

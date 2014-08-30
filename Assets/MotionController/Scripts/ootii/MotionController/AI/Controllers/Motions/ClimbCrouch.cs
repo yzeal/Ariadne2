@@ -534,7 +534,6 @@ namespace com.ootii.AI.Controllers
 				// It's possible that we haven't arrived because we can't shift into the position to the
 				// left or the right. This happens if something is blocking us. That said, if we don't require
 				// any y movement, we could consider ourselves done
-				Debug.Log("x: " + mVelocity.x + "   y: " + mVelocity.y + "   z: " + mVelocity.z);
 				if (mVelocity.y == 0f && (mVelocity.x != 0f || mVelocity.z != 0f))
 				{
 					float lDistance = Vector3.Distance(mController.transform.position, mTargetPosition);

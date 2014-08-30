@@ -70,11 +70,28 @@ namespace com.ootii.Cameras
             set { _FPCDistance = value; }
         }
 
+		/// <summary>
+		/// The distance the camera is to stay way from the target
+		/// </summary>
+		public float _CrawlDistance = 1.2f;
+		public float CrawlDistance
+		{
+			get { return _CrawlDistance; }
+			set { _CrawlDistance = value; }
+		}
+
+		public float _CrawlDistanceY = 1.2f;
+		public float CrawlDistanceY
+		{
+			get { return _CrawlDistanceY; }
+			set { _CrawlDistanceY = value; }
+		}
+
         /// <summary>
         /// The distance the camera is to the rigth of the avatar when
         /// in first person mode
         /// </summary>
-        public float _FPCSideDistance = 0.65f;
+        public float _FPCSideDistance = 0f;
         public float FPCSideDistance
         {
             get { return _FPCSideDistance; }
@@ -111,6 +128,13 @@ namespace com.ootii.Cameras
             get { return _Pitch; }
             set { _Pitch = value; }
         }
+
+		public Vector3 _PitchCrawl = new Vector3(0f, -60f, 70f);
+		public Vector3 PitchCrawl
+		{
+			get { return _PitchCrawl; }
+			set { _PitchCrawl = value; }
+		}
 
         /// <summary>
         /// The yaw of the camera. The vector contains the value (x),
@@ -252,15 +276,6 @@ namespace com.ootii.Cameras
             mViewVelocityX = 0.0001f;
         }
 
-		//TESTI
-		public void ResetCamera(){
-			mTransitionDistance = _Distance;
-			mSideTransitionDistance = 0f;
-			
-
-			mViewVelocityX = 0.0001f;
-
-		}
 
         /// <summary>
         /// Called once per frame to update objects. This happens after FixedUpdate().
@@ -276,8 +291,8 @@ namespace com.ootii.Cameras
 
 
             // Determine if we're simply aiming and follow the target
-            if (mMode == EnumCameraMode.FIRST_PERSON)
-            {
+			if (mMode == EnumCameraMode.FIRST_PERSON)
+			{
                 lMouseX = InputManager.ViewX;
                 lMouseY = (_InvertYAxis ? InputManager.ViewY : -InputManager.ViewY);
 
@@ -315,10 +330,12 @@ namespace com.ootii.Cameras
                 // Curve for "fit { {-1, 1},{-0.75, 2},{-0.35, 2.8},{0.35,2.8},{0.75,2},{1, 1} }"
                 float lOverPitch = _Pitch.x / 90f;
                 mDistanceHeightModifier = (0.93876f - (0.986224f * lOverPitch * lOverPitch));
-            }
+			} else if (mMode == EnumCameraMode.CRAWLING)
+			{
+			}
             // Otherwise, rotate around the target position
             else
-            {
+			{
                 lMouseX = InputManager.ViewX;
                 lMouseY = (_InvertYAxis ? InputManager.ViewY : -InputManager.ViewY);
                 mIsOrbiting = (lMouseX != 0 || lMouseY != 0);
@@ -393,7 +410,8 @@ namespace com.ootii.Cameras
 
             // Since we're moving the view, we need to update the avatar rotation to match the
             // view. If we don't do it here, the avatar will lag behind and we'll get wobbling
-            if ((mMode == EnumCameraMode.FIRST_PERSON && mTransitionTimer <= 0f))
+//			if (((mMode == EnumCameraMode.FIRST_PERSON || mMode == EnumCameraMode.CRAWLING) && mTransitionTimer <= 0f))
+			if ((mMode == EnumCameraMode.FIRST_PERSON && mTransitionTimer <= 0f))
             {
                 _Controller.FaceCameraForward();
             }
@@ -443,7 +461,57 @@ namespace com.ootii.Cameras
 
                 // Shift the camera to the right by the specified abount (as we transition into aim)
                 mNewRigPosition += (lAvatarRight * mSideTransitionDistance);
-            }
+			}
+			else if (mMode == EnumCameraMode.CRAWLING)
+			{
+				_Yaw.x = transform.eulerAngles.y;
+				if (_Yaw.x > 180f) { _Yaw.x -= 360f; }
+				
+				// Determine the camera position based on the angles
+				Quaternion lViewRotationY = Quaternion.AngleAxis(_Yaw.x, Vector3.up);
+				Quaternion lViewRotationX = Quaternion.AngleAxis(_PitchCrawl.x, Vector3.right);
+				mRigViewOffset = lViewRotationY * lViewRotationX * Vector3.forward;
+
+				// Determine how far along the aim transition process we are
+				mTransitionPercent = 1f;
+				float lTimePercent = 1f;
+				if (mTransitionTimer > 0f)
+				{
+					// Determine how far along the transition we are
+					mTransitionTimer = Mathf.Max(0f, mTransitionTimer - Time.deltaTime);
+					lTimePercent = 1.0f - (mTransitionTimer / _TransitionTimeToFPC);
+					
+					// Create an curve for smoothing
+					mTransitionPercent = (1.74864f * Mathf.Sin(lTimePercent)) + (1.02553f * Mathf.Cos(lTimePercent)) - 1.02553f;
+					
+					mTransitionDistance = _Distance - ((_Distance - _CrawlDistance) * mTransitionPercent);
+					mSideTransitionDistance = _FPCSideDistance * mTransitionPercent;
+				}
+				
+				// If we were directly following behind the character, this would be the camera
+				// position. We don't want this, but we do want the expected horizontal distance of the 
+				// camera (meaning no y value used) from the target so we can use it to get the correct position
+				mNewRigPosition = mAnchorPosition - new Vector3(0f, _CrawlDistanceY, 0f) - (mRigViewOffset * (mTransitionDistance * mDistanceHeightModifier));
+				float lLength = NumberHelper.GetHorizontalDistance(mNewRigPosition, mAnchorPosition);
+				
+				// Calculate the direction from the camera towards the follow target. Since this is the
+				// camera's "last frame" position, it will slowly pull the camera towards
+				// a flat position. To fix this, we remove the height element
+				Vector3 lTargetDirection = mAnchorPosition - transform.position;
+				lTargetDirection.y = 0;
+				
+				// Use the normal and our desired distance to determine the next position of the camera.
+				// This could pull the camera forward or push the camera back as it tries to keep a hard
+				// distance.
+				lTargetDirection.Normalize();
+				lTargetDirection = lTargetDirection * lLength;
+				
+				// Grab the new target and keep our desired distance from it (along the view direction).
+				// This has the player rotating around the camera when they run 90, but
+				// the camera will follow them if they are running away or towards the camera
+				mNewRigPosition.x = mAnchorPosition.x - lTargetDirection.x;
+				mNewRigPosition.z = mAnchorPosition.z - lTargetDirection.z;
+			}
             // If the camera is orbiting, let it control the rig position
             else if (mIsOrbiting || mMode == EnumCameraMode.THIRD_PERSON_FIXED || mTransitionTimer > 0f)
             {
@@ -475,7 +543,7 @@ namespace com.ootii.Cameras
                 // When orbiting the camera is behind the target
                 mNewRigPosition = mAnchorPosition - (mRigViewOffset * (mTransitionDistance * mDistanceHeightModifier));
 
-                // Shift to the right by the speified amount (as we transition out of aim)
+                // Shift to the right by the specified amount (as we transition out of aim)
                 mNewRigPosition += (lAvatarRight * mSideTransitionDistance);
             }
             // Otherwise, the rig position is based on the controller
@@ -571,7 +639,16 @@ namespace com.ootii.Cameras
                 // Set the position we're looking towards
                 Vector3 lLookAtPosition = mAnchorPosition + (mRigViewOffset * 8f * mTransitionPercent) + (lAvatarRight * mSideTransitionDistance);
                 mViewRotation = Quaternion.LookRotation(lLookAtPosition - mNewRigPosition);
-            }
+			}else if (mMode == EnumCameraMode.CRAWLING)
+			{
+				// In the crawling view, the view controls the controller's rotation
+				Quaternion lViewRotationY = Quaternion.AngleAxis(_Yaw.x, Vector3.up);
+				lAvatarRight = lViewRotationY * Vector3.right;
+				
+				// Set the position we're looking towards
+				Vector3 lLookAtPosition = mAnchorPosition + (mRigViewOffset * 8f * mTransitionPercent) + (lAvatarRight * mSideTransitionDistance);
+				mViewRotation = Quaternion.LookRotation(lLookAtPosition - mNewRigPosition);
+			}
             // If the camera is transitioning, we need to use the distant target
             else if (mTransitionTimer > 0f)
             {
@@ -614,7 +691,17 @@ namespace com.ootii.Cameras
                 float lPercentToFinish = (mTransitionDistance - _FPCDistance) / lRange;
 
                 mTransitionTimer = _TransitionTimeToFPC * lPercentToFinish;
-            }
+			}else if (rMode == EnumCameraMode.CRAWLING)
+			{
+				// Finally, create the offset
+				Quaternion lViewRotation = Quaternion.Euler(_PitchCrawl.x, _Yaw.x, 0);
+				mRigViewOffset = lViewRotation * Vector3.forward;
+				
+				float lRange = _Distance - _CrawlDistance;
+				float lPercentToFinish = (mTransitionDistance - _CrawlDistance) / lRange;
+				
+				mTransitionTimer = _TransitionTimeToFPC * lPercentToFinish;
+			}
             else if (rMode == EnumCameraMode.THIRD_PERSON_FIXED || rMode == EnumCameraMode.THIRD_PERSON_FOLLOW)
             {
                 // Transition from the first person camera
@@ -627,7 +714,17 @@ namespace com.ootii.Cameras
                     float lPercentToFinish = 1.0f - ((mTransitionDistance - _FPCDistance) / lRange);
 
                     mTransitionTimer = _TransitionTimeToTPC * lPercentToFinish;
-                }
+				}else if (mMode == EnumCameraMode.CRAWLING)
+				{
+					Quaternion lViewRotation = Quaternion.Euler(_PitchCrawl.x, _Yaw.x, 0);
+					mRigViewOffset = lViewRotation * _Controller.transform.forward;
+					
+					float lRange = _Distance - _CrawlDistance;
+					float lPercentToFinish = 1.0f - ((mTransitionDistance - _CrawlDistance) / lRange);
+					
+					mTransitionTimer = _TransitionTimeToTPC * lPercentToFinish;
+				}
+
             }
 
             // Set the mode

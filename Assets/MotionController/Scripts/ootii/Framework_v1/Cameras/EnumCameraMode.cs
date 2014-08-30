@@ -27,6 +27,8 @@ namespace com.ootii.Cameras
 		/// </summary>
 		public const int FIRST_PERSON = 2;
 
+		public const int CRAWLING = 3;
+
 	}
 }
 
