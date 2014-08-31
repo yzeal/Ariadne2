@@ -27,8 +27,9 @@ public class GlobalVariables : MonoBehaviour {
 
 	public bool newGame;
 
-	public bool toggleCrawl;
+	public bool inCrawlArea;
 	public bool crawling;
+	public float crawlBugFix;
 
 	public Vector3 savePoint = Vector3.zero;
 
@@ -69,6 +70,12 @@ public class GlobalVariables : MonoBehaviour {
 			}
 		}
 
+		//Die Variable wird (aus Gründen?) nicht immer in OnTriggerExit in CrawlArea auf false gesetzt, wenn man diese verlässt, was dazu führt, dass man die Kriechbewegung nicht durch Tastendruck verlassen kann.
+		crawlBugFix += Time.deltaTime;
+		if(crawlBugFix >= 2f){
+			inCrawlArea = false;
+			crawlBugFix = 0f;
+		}
 
 //		if(Input.GetKeyDown("p")){
 //			toggleCrawl = true;
@@ -84,7 +91,8 @@ public class GlobalVariables : MonoBehaviour {
 //	}
 
 	void OnLevelWasLoaded(){
-		toggleCrawl = false;
+		inCrawlArea = false;
+		crawlBugFix = 0f;
 	}
 
 	public void load(){
@@ -95,7 +103,7 @@ public class GlobalVariables : MonoBehaviour {
 
 		if(PlayerPrefs.GetInt("Crawling") != 0){
 			crawling = true;
-			toggleCrawl = true;
+//			toggleCrawl = true;
 		}
 
 

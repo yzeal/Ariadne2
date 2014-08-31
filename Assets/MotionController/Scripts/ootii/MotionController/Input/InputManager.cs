@@ -313,7 +313,7 @@ namespace com.ootii.Input
             else if (rAction == "ChangeStance")
             {
 //                if (UnityEngine.Input.GetKeyDown(KeyCode.T)) { return true; }
-				if(UnityEngine.Input.GetButtonDown("crawlButton") && (GlobalVariables.Instance != null && !GlobalVariables.Instance.toggleCrawl)){
+				if(UnityEngine.Input.GetButtonDown("crawlButton") && (GlobalVariables.Instance != null && !GlobalVariables.Instance.inCrawlArea)){
 					if(GlobalVariables.Instance != null) GlobalVariables.Instance.crawling = GlobalVariables.Instance.crawling ? false : true;
 					return true;
 				}

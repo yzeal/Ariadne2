@@ -15,7 +15,7 @@ public class CrawlArea : MonoBehaviour {
 	
 	void OnTriggerEnter(Collider other){
 		if(other.CompareTag("Player") && !justActivated){
-			GlobalVariables.Instance.toggleCrawl = true;
+			GlobalVariables.Instance.inCrawlArea = true;
 			justActivated = true;
 //			GlobalVariables.Instance.crawling = true;
 
@@ -26,7 +26,7 @@ public class CrawlArea : MonoBehaviour {
 	void OnTriggerExit(Collider other){
 		if(other.CompareTag("Player")){
 			GlobalVariables.Instance.crawling = false;
-			GlobalVariables.Instance.toggleCrawl = false;
+			GlobalVariables.Instance.inCrawlArea = false;
 			justActivated = false;
 //			GlobalVariables.Instance.crawling = false;
 		}
@@ -42,7 +42,7 @@ public class CrawlArea : MonoBehaviour {
 	void OnTriggerStay(Collider other){
 		if(other.CompareTag("Player")){
 			GlobalVariables.Instance.crawling = true;
-			GlobalVariables.Instance.toggleCrawl = true;
+			GlobalVariables.Instance.inCrawlArea = true;
 		}
 	}
 
