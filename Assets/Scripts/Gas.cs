@@ -8,18 +8,7 @@ public class Gas : MonoBehaviour {
 	public ParticleSystem smoke;
 
 	private int currentPositionIndex;
-
-	// Use this for initialization
-	void Start () {
-
-		//TESTI
-//		InitializeGas();
-	}
 	
-	// Update is called once per frame
-	void Update () {
-	
-	}
 
 	public void InitializeGas(){
 		float time = 0f;

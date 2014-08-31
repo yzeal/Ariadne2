@@ -8,8 +8,7 @@ public class MinotaurusFollow : MonoBehaviour {
 	public float seeAngle = 180f;
 
 	public bool returnToStartPosition;
-
-	//[SerializeField]
+	
 	private GameObject player;	
 	
 	private NavMeshAgent agent;
@@ -24,7 +23,6 @@ public class MinotaurusFollow : MonoBehaviour {
 	private Vector3 startPosition;
 
 	private bool glowing;
-//	private Texture2D schwarz;
 	public Texture schwarz;
 	private Texture glowy;
 	private Material mat;
@@ -32,7 +30,6 @@ public class MinotaurusFollow : MonoBehaviour {
     void Start() {
 		player = GameObject.FindWithTag("Player");
         agent = GetComponent<NavMeshAgent>();
-//		soundTest = GetComponent<AudioSource>();
 		startPosition = transform.position;
 
 		seenByCharacter = false;
@@ -53,7 +50,6 @@ public class MinotaurusFollow : MonoBehaviour {
 		float angle = (minotaurAngle - playerAngle > 0) ? (minotaurAngle - playerAngle) : (playerAngle - minotaurAngle); //Winkel zwischen Blickrichtung des Spielers und Golem-Spieler-Verbindung.
 
 		angle *= Mathf.Rad2Deg;
-		//Debug.Log(angle);
 
 		if(angle > seeAngle/2f && angle < 360f - seeAngle/2f){
 			seenByCharacter = false;
@@ -87,17 +83,8 @@ public class MinotaurusFollow : MonoBehaviour {
 			agent.SetDestination(transform.position);
 			if(glowing){
 				glowing = false;
-//				mat.SetTexture("_Illum", schwarz);
 			}
 		}
-
-//		if(!glowing && followCharacter){
-//			glowing = true;
-//			mat.SetTexture("_Illum", glowy);
-//		}else if(glowing && !followCharacter){
-//			glowing = false;
-//			mat.SetTexture("_Illum", schwarz);
-//		}
             
     }
 
@@ -125,7 +112,6 @@ public class MinotaurusFollow : MonoBehaviour {
 			soundTest.Play();
 		}
 		followCharacter = true;
-		Debug.Log("in range");
 	}
 	
 	public void outOfRange(){
@@ -140,7 +126,6 @@ public class MinotaurusFollow : MonoBehaviour {
 			agent.SetDestination(startPosition);
 		}
 
-//		Debug.Log("out of");
 	}
 
 }

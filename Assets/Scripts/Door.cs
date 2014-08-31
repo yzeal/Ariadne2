@@ -14,7 +14,7 @@ public class Door : MonoBehaviour {
 	public Bodenschalter[] bodenschalter;
 	public bool open;
 
-	private Vector3 endpos;//TEMP
+	private Vector3 endpos;
 	private Vector3 startpos;
 
 	public Color offColor;
@@ -22,7 +22,7 @@ public class Door : MonoBehaviour {
 	
 	private Material mat;
 
-	// Use this for initialization
+
 	void Start () {
 
 		if(PlayerPrefs.GetInt(Application.loadedLevelName + "Door" + id) == 0){
@@ -45,10 +45,6 @@ public class Door : MonoBehaviour {
 		}
 
 		switch(openDirection){
-//			case DoorDirection.UP: endpos = transform.position + Vector3.up*transform.localScale.y; break;
-//			case DoorDirection.DOWN: endpos = transform.position + Vector3.down*transform.localScale.y; break;
-//			case DoorDirection.LEFT: endpos = transform.position + Vector3.left*transform.localScale.y; break;
-//			default: endpos = transform.position + Vector3.right*transform.localScale.y; break;
 			case DoorDirection.UP: endpos = transform.position + transform.up*openDistance*5.5f; break;
 			case DoorDirection.DOWN: endpos = transform.position - transform.up*openDistance*5.5f; break;
 			case DoorDirection.LEFT: endpos = transform.position - transform.right*openDistance*5.5f; break;
@@ -58,11 +54,10 @@ public class Door : MonoBehaviour {
 		}
 
 		startpos = transform.position;
-//		endpos = transform.position + Vector3.down*transform.localScale.y;//TEMP
 	
 	}
 	
-	// Update is called once per frame
+
 	void Update () {
 		open = true;
 		foreach(Bodenschalter schalter in bodenschalter){
@@ -76,16 +71,14 @@ public class Door : MonoBehaviour {
 			if(GlobalVariables.Instance != null && GlobalVariables.Instance.autoSave){
 				PlayerPrefs.SetInt(Application.loadedLevelName + "Door" + id, 1);
 			}
-			transform.position = Vector3.Lerp(transform.position, endpos, Time.deltaTime);//TEMP
-//			Debug.Log("Tür " + id + " geöffnet.");
+			transform.position = Vector3.Lerp(transform.position, endpos, Time.deltaTime);
 		}
 
 		if(!open && transform.position != startpos){
 			if(GlobalVariables.Instance != null && GlobalVariables.Instance.autoSave){
 				PlayerPrefs.SetInt(Application.loadedLevelName + "Door" + id, 0);
 			}
-			transform.position = Vector3.Lerp(transform.position, startpos, Time.deltaTime);//TEMP
-//			Debug.Log("Tür " + id + " geschlossen.");
+			transform.position = Vector3.Lerp(transform.position, startpos, Time.deltaTime);
 		}
 
 		if(open){

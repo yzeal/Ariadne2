@@ -20,7 +20,7 @@ public class Bodenschalter : MonoBehaviour {
 	private Material matBoden;
 	private Material matDach;
 
-	// Use this for initialization
+
 	void Start () {
 
 		if(PlayerPrefs.GetInt(Application.loadedLevelName + "Switch" + id) == 0){
@@ -41,7 +41,7 @@ public class Bodenschalter : MonoBehaviour {
 		justActivated = false;
 	}
 	
-	// Update is called once per frame
+
 	void Update () {
 		if(on){
 			matBoden.SetColor("_Color", onColor);
@@ -62,13 +62,11 @@ public class Bodenschalter : MonoBehaviour {
 	void OnTriggerEnter(Collider other) {
 		if(!justActivated && other.CompareTag("Player")){
 			if(!on){
-	//		if(!on && other.CompareTag("Player")){
 				on = true;
 				if(save && GlobalVariables.Instance.autoSave){
 					PlayerPrefs.SetInt(Application.loadedLevelName + "Switch" + id, 1);
 				}
 			}else {
-	//		if(on && other.CompareTag("Player")){
 					on = false;
 					if(save && GlobalVariables.Instance.autoSave){
 						PlayerPrefs.SetInt(Application.loadedLevelName + "Switch" + id, 0);

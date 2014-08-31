@@ -9,7 +9,7 @@ public class DialogHandler : MonoBehaviour {
 	//Sollten mehrere Dialoge kurz nacheinander ausgelöst werden, sollen sie nacheinander abgespielt werden. 
 	private Queue<int> subtitlesToActivate = new Queue<int>();
 
-	// Use this for initialization
+
 	void Start () {
 		for(int i = 0; i < subtitles.Length; i++){
 			if(PlayerPrefs.GetInt(Application.loadedLevelName + "Subtitle" + i) != 0){
@@ -19,7 +19,7 @@ public class DialogHandler : MonoBehaviour {
 
 	}
 	
-	// Update is called once per frame
+
 	void Update () {
 		if(subtitlesToActivate.Count > 0){
 			if(subtitles[subtitlesToActivate.Peek()] != null){

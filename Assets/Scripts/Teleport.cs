@@ -49,8 +49,6 @@ public class Teleport : MonoBehaviour {
 			GlobalVariables.Instance.exitDirection = exitDirection;
 			GlobalVariables.Instance.exitLevel = exitLevel;
 
-
-//			GlobalVariables.Instance.changeScene(nextLevel);
 			Invoke("changeScene", 1.5f);
 		}
 	}

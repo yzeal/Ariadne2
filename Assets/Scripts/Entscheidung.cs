@@ -20,7 +20,7 @@ public class Entscheidung : MonoBehaviour {
 	private bool disable;
 	private bool show = true;
 	
-	// Use this for initialization
+
 	void Start () {
 
 		currentButton = 0;
@@ -34,7 +34,7 @@ public class Entscheidung : MonoBehaviour {
 		menuTitle.fontSize = 50;
 	}
 	
-	// Update is called once per frame
+
 	void Update () {
 
 		GameObject.FindWithTag("Player").GetComponent<com.ootii.AI.Controllers.MotionController>().enabled = false;
@@ -101,7 +101,6 @@ public class Entscheidung : MonoBehaviour {
 				GameObject.Find("Gas").GetComponent<Gas>().InitializeGas();
 				show = false;
 				Invoke("GameOver", 5f);
-	//			Destroy(gameObject);
 			}
 			
 			if(b2){

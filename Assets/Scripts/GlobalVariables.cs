@@ -13,8 +13,7 @@ public enum ExitLevel{
 public class GlobalVariables : MonoBehaviour {
 
 	public int startLevel;
-
-//	public bool[] switches;
+	
 	public bool deleteProgressAtStart; //zum Testen
 	public bool autoSave;
 
@@ -55,7 +54,7 @@ public class GlobalVariables : MonoBehaviour {
 	}
 	
 
-	// Update is called once per frame
+
 	void Update () {
 		if(Input.GetButton("mainMenu")){
 			if(autoSave) save();
@@ -107,7 +106,7 @@ public class GlobalVariables : MonoBehaviour {
 			newGame = true;
 			currentLevel = 0;
 			for(int i = 0; i < 4; i++){
-				int supplevel = Random.Range(0, 1); //TODO Mehr Levelvarianten! TEMP: nur einer
+				int supplevel = Random.Range(0, 1); //TODO Mehr Levelvarianten! TEMP: je nur einer
 				levelSequence[i] = "level" + i + "-" + supplevel;
 			}
 			levelSequence[4] = "level4";

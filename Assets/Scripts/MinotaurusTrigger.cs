@@ -8,12 +8,12 @@ public class MinotaurusTrigger : MonoBehaviour {
 
 	public float range;
 
-	// Use this for initialization
+
 	void Start () {
 		player = GameObject.FindWithTag("Player");
 	}
 	
-	// Update is called once per frame
+
 	void Update () {
 		float d = Vector3.Distance(player.transform.position, transform.position);
 		if(d > range){
@@ -27,10 +27,5 @@ public class MinotaurusTrigger : MonoBehaviour {
 			minotaurus.inRange();
 		}
 	}
-	
-//	void OnTriggerExit(Collider other){
-//		if(other.CompareTag("Player")){
-//			minotaurus.outOfRange();
-//		}
-//	}
+
 }

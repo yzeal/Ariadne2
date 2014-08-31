@@ -8,14 +8,14 @@ public class BlendIn : MonoBehaviour {
 	private Texture2D schwarz;
 	private float alpha = 1f;
 
-	// Use this for initialization
+
 	void Start () {
 		schwarz = new Texture2D(1,1);
 		schwarz.SetPixel(0,0, new Color(0f,0f,0f));
 		schwarz.Apply();
 	}
 	
-	// Update is called once per frame
+
 	void Update () {
 		time += Time.deltaTime;
 		if(time >= 0.5f){

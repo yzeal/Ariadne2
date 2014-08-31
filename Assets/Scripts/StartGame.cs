@@ -19,7 +19,7 @@ public class StartGame : MonoBehaviour {
 
 	private bool disable;
 
-	// Use this for initialization
+
 	void Start () {
 
 		GlobalVariables.Instance.load();
@@ -40,7 +40,7 @@ public class StartGame : MonoBehaviour {
 
 	}
 	
-	// Update is called once per frame
+
 	void Update () {
 		if((Input.GetButtonDown("menuUp") || Input.GetAxis("Vertical") < -0.1f) && !newGame && !disable){
 			currentButton--;
@@ -112,10 +112,7 @@ public class StartGame : MonoBehaviour {
 			}
 		}
 
-
-
-
-
+		
 		if(b2){
 			Debug.Log("currentLevel: " + GlobalVariables.Instance.currentLevel);
 			Application.LoadLevel(GlobalVariables.Instance.levelSequence[GlobalVariables.Instance.currentLevel]);

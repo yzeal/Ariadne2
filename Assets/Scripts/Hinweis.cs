@@ -12,7 +12,7 @@ public class Hinweis : MonoBehaviour {
 
 	private Material mat;
 
-	// Use this for initialization
+
 	void Start () {
 
 		mat = GetComponentInChildren<MeshRenderer>().material;
@@ -29,7 +29,7 @@ public class Hinweis : MonoBehaviour {
 		}
 	}
 	
-	// Update is called once per frame
+
 	void Update () {
 		on = true;
 		foreach(Bodenschalter schalter in bodenschalter){
