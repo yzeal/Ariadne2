@@ -13,7 +13,7 @@ public class Gas : MonoBehaviour {
 	void Start () {
 
 		//TESTI
-		InitializeGas();
+//		InitializeGas();
 	}
 	
 	// Update is called once per frame
@@ -21,7 +21,7 @@ public class Gas : MonoBehaviour {
 	
 	}
 
-	private void InitializeGas(){
+	public void InitializeGas(){
 		float time = 0f;
 		
 		for(int i = 0; i < positions.Length; i++){

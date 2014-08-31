@@ -44,14 +44,7 @@ public class Dialog : MonoBehaviour {
 		schwarz.SetPixel(0,0, new Color(0f,0f,0f,0.5f));
 		schwarz.Apply();
 	}
-
-	//TESTI
-	void Update(){
-		if(Input.GetKeyDown("m")){
-			GameObject.Find("Entscheidung").GetComponent<Entscheidung>().enabled = true;
-		}
-
-	}
+	
 
 	void OnGUI(){
 		if(active){

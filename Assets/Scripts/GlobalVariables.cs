@@ -77,18 +77,11 @@ public class GlobalVariables : MonoBehaviour {
 			crawlBugFix = 0f;
 		}
 
-//		if(Input.GetKeyDown("p")){
-//			toggleCrawl = true;
-//		}
 	}
 
 	void OnGUI(){
 		// wg "!dest.m_MultiFrameGUIState.m_NamedKeyControlList"-Error sonst. (???)
 	}
-
-//	void OnLevelWasLoaded(){
-//		untertitelHandler = GameObject.Find("UntertitelHandler").GetComponent<UntertitelHandler>();
-//	}
 
 	void OnLevelWasLoaded(){
 		inCrawlArea = false;
@@ -103,7 +96,6 @@ public class GlobalVariables : MonoBehaviour {
 
 		if(PlayerPrefs.GetInt("Crawling") != 0){
 			crawling = true;
-//			toggleCrawl = true;
 		}
 
 
@@ -145,18 +137,8 @@ public class GlobalVariables : MonoBehaviour {
 
 	}
 
-//	public void saveSubtitles(){
-//		if(untertitelHandler != null){
-//			for(int i = 0; i < untertitelHandler.subtitles.Length; i++){
-//				if(untertitelHandler.subtitles[i] == null){
-//					PlayerPrefs.SetInt(Application.loadedLevelName + "Subtitle" + i, 1);
-//				}
-//			}
-//		}
-//	}
 
 	public void changeScene(int nLevel){
-//		crawling = false;
 		Debug.Log("Change Scene: " + nLevel);
 		savePoint = Vector3.zero;
 		currentLevel = nLevel;

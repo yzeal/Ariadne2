@@ -2,7 +2,8 @@
 using System.Collections;
 
 public class Entscheidung : MonoBehaviour {
-	
+
+	public bool bwaj;
 
 	public GUIStyle menuButton;
 	public GUIStyle menuTitle;
@@ -17,6 +18,7 @@ public class Entscheidung : MonoBehaviour {
 	private bool b2;
 	
 	private bool disable;
+	private bool show = true;
 	
 	// Use this for initialization
 	void Start () {
@@ -34,6 +36,7 @@ public class Entscheidung : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+
 		GameObject.FindWithTag("Player").GetComponent<com.ootii.AI.Controllers.MotionController>().enabled = false;
 
 		if((Input.GetButtonDown("menuUp") || Input.GetAxis("Vertical") < -0.1f) && !disable){
@@ -65,50 +68,55 @@ public class Entscheidung : MonoBehaviour {
 	
 	void OnGUI(){
 		
-		
-		switch(currentButton){
-		case 0:  GUI.FocusControl("auswahl1"); break;
-		case 1:  GUI.FocusControl("auswahl2"); break;
-		}
-		
-		GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), black, ScaleMode.StretchToFill);
-		
-		GUI.Label(new Rect(0f, Screen.height/2f - 200f, Screen.width, 200f), "Gift ins System kippen?", menuTitle);
-		
-		GUI.SetNextControlName("auswahl1");
-		b1 = GUI.Button(new Rect(0f, Screen.height/2f, Screen.width, 100f), "Befehl befolgen", menuButton);
-		if(newGame){
-			GUI.color = new Color(GUI.color.r, GUI.color.g, GUI.color.b, 0.5f);
-			GUI.enabled = false;
-		}
-		GUI.SetNextControlName("auswahl2");
-		b2 = GUI.Button(new Rect(0f, Screen.height/2f + 100f, Screen.width, 100f), "Befehl widersetzen", menuButton);
-		
-		
-		
-		if (Input.GetButton("menuEnter")) {
+		if(show){
+
 			switch(currentButton){
-			case 0:  b1 = true; break;
-			case 1:  b2 = true; break;
+				case 0:  GUI.FocusControl("auswahl1"); break;
+				case 1:  GUI.FocusControl("auswahl2"); break;
+			}
+			
+			GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), black, ScaleMode.StretchToFill);
+			
+			GUI.Label(new Rect(0f, Screen.height/2f - 200f, Screen.width, 200f), "Gift ins System kippen?", menuTitle);
+			
+			GUI.SetNextControlName("auswahl1");
+			b1 = GUI.Button(new Rect(0f, Screen.height/2f, Screen.width, 100f), "Befehl befolgen", menuButton);
+
+			GUI.SetNextControlName("auswahl2");
+			b2 = GUI.Button(new Rect(0f, Screen.height/2f + 100f, Screen.width, 100f), "Befehl widersetzen", menuButton);
+			
+			
+			
+			if (Input.GetButton("menuEnter")) {
+				switch(currentButton){
+				case 0:  b1 = true; break;
+				case 1:  b2 = true; break;
+				}
+			}
+			
+			if(b1){
+				
+				Debug.Log("Befehl befolgt.");
+				GameObject.FindWithTag("Player").GetComponent<com.ootii.AI.Controllers.MotionController>().enabled = true;
+				GameObject.Find("Gas").GetComponent<Gas>().InitializeGas();
+				show = false;
+				Invoke("GameOver", 5f);
+	//			Destroy(gameObject);
+			}
+			
+			if(b2){
+				
+				Debug.Log("Befehl widersetzt.");
+				GameObject.Find("DialogHandler").GetComponent<DialogHandler>().Activate(1);
+				GameObject.FindWithTag("Player").GetComponent<com.ootii.AI.Controllers.MotionController>().enabled = true;
+				Destroy(gameObject);
 			}
 		}
 		
-		if(b1){
-			
-			Debug.Log("Befehl befolgt.");
-			//TODO Dialog aufrufen.
-			GameObject.FindWithTag("Player").GetComponent<com.ootii.AI.Controllers.MotionController>().enabled = true;
-			Destroy(gameObject);
-		}
-		
-		if(b2){
-			
-			Debug.Log("Befehl widersetzt.");
-			//TODO Dialog aufrufen.
-			GameObject.FindWithTag("Player").GetComponent<com.ootii.AI.Controllers.MotionController>().enabled = true;
-			Destroy(gameObject);
-		}
-		
+	}
+
+	private void GameOver(){
+		GlobalVariables.Instance.changeScene(5);
 	}
 
 
