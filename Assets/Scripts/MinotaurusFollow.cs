@@ -22,7 +22,11 @@ public class MinotaurusFollow : MonoBehaviour {
 	public AudioSource grargh;
 
 	private Vector3 startPosition;
-	
+
+	private bool glowing;
+	private Texture2D schwarz;
+	private Texture glowy;
+	private Material mat;
 
     void Start() {
 		player = GameObject.FindWithTag("Player");
@@ -33,6 +37,21 @@ public class MinotaurusFollow : MonoBehaviour {
 		seenByCharacter = false;
 
 		agent.speed = GlobalVariables.Instance.minotaurusSpeed;
+
+		mat = GetComponentInChildren<MeshRenderer>().material;
+
+		glowy = mat.GetTexture("_Illum");
+		if(glowy == null){
+			Debug.Log("glowynull");
+		}else if(mat == null){
+			Debug.Log("matnull");
+		}
+
+		schwarz = new Texture2D(1,1);
+		schwarz.SetPixel(0,0, new Color(0f,0f,0f));
+		schwarz.Apply();
+
+		mat.SetTexture("_Illum", schwarz);
     }
 	
     void Update() {
@@ -56,17 +75,37 @@ public class MinotaurusFollow : MonoBehaviour {
 					soundTest.Play();
 				}
 				agent.SetDestination(player.transform.position);
+				if(!glowing){
+					glowing = true;
+					mat.SetTexture("_Illum", glowy);
+				}
 			}else{
 				if(soundTest.isPlaying){
 					soundTest.Pause();
 				}
 				agent.SetDestination(transform.position);
+				if(glowing){
+					glowing = false;
+					mat.SetTexture("_Illum", schwarz);
+				}
 			}        	
 		}
 
 		if(stop){
 			agent.SetDestination(transform.position);
+			if(glowing){
+				glowing = false;
+				mat.SetTexture("_Illum", schwarz);
+			}
 		}
+
+//		if(!glowing && followCharacter){
+//			glowing = true;
+//			mat.SetTexture("_Illum", glowy);
+//		}else if(glowing && !followCharacter){
+//			glowing = false;
+//			mat.SetTexture("_Illum", schwarz);
+//		}
             
     }
 

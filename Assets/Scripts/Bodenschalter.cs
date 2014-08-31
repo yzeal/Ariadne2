@@ -60,7 +60,6 @@ public class Bodenschalter : MonoBehaviour {
 	}
 
 	void OnTriggerEnter(Collider other) {
-		Debug.Log("trigger enter");
 		if(!justActivated && other.CompareTag("Player")){
 			if(!on){
 	//		if(!on && other.CompareTag("Player")){
