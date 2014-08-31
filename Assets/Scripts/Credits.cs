@@ -17,6 +17,7 @@ public class Credits : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		text.fontSize = 40;
 		Invoke("Move", 3f);
 	}
 	
@@ -31,7 +32,7 @@ public class Credits : MonoBehaviour {
 			yPos = Mathf.Lerp(0f, Screen.height*2f, t/time);
 		}
 
-		if(Input.GetButtonDown("Jump")){
+		if(Input.GetButtonDown("Ende")){
 			Application.LoadLevel("start");
 		}
 	}
@@ -50,8 +51,24 @@ public class Credits : MonoBehaviour {
 		GUI.Label(new Rect(0f, Screen.height/4f + 3f*Screen.height/10f - yPos, Screen.width, Screen.height/10f), "Yasmin Schraven", title2);
 		GUI.Label(new Rect(0f, Screen.height/4f + 3.5f*Screen.height/10f - yPos, Screen.width, Screen.height/10f), "Benjamin Sonnenschein", title2);
 		GUI.Label(new Rect(0f, Screen.height/4f + 4f*Screen.height/10f - yPos, Screen.width, Screen.height/10f), "Julia Wolf", title2);
-		GUI.Label(new Rect(0f, Screen.height/4f + 5f*Screen.height/10f - yPos, Screen.width, Screen.height/10f), "Dozent: Wolfgang Reichert", title2);
+		GUI.Label(new Rect(0f, Screen.height/4f + 5f*Screen.height/10f - yPos, Screen.width, Screen.height/10f), "Dozent: Wolfgang Reichardt", title2);
 		title2.alignment = TextAnchor.MiddleRight;
+
+
+		GUI.Label(new Rect(0f, Screen.height/4f + 10f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Leveldesign", title2);
+		GUI.Label(new Rect(0f, Screen.height/4f + 11f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Modellierung, Audio", title2);
+		GUI.Label(new Rect(0f, Screen.height/4f + 12f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Programmierung", title2);
+//		GUI.Label(new Rect(0f, Screen.height/4f + 13f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Audio", title2);
+
+		GUI.Label(new Rect(0f, Screen.height/4f + 15f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Musik", title2);
+
+		GUI.Label(new Rect(Screen.width/2f + Screen.width/20f, Screen.height/4f + 10f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Benjamin Sonnenschein", text);
+		GUI.Label(new Rect(Screen.width/2f + Screen.width/20f, Screen.height/4f + 11f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Yasmin Schraven", text);
+		GUI.Label(new Rect(Screen.width/2f + Screen.width/20f, Screen.height/4f + 12f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Julia Wolf", text);
+		//		GUI.Label(new Rect(Screen.width/2f + Screen.width/20f, Screen.height/4f + 13f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Audio", text);
+		
+		GUI.Label(new Rect(Screen.width/2f + Screen.width/20f, Screen.height/4f + 15f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Musik", text);
+
 
 		GUI.Label(new Rect(0f, Screen.height*3f - Screen.height/2f - yPos, Screen.width, Screen.height/10f), "ende", title);
 	}

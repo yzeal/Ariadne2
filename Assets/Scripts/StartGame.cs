@@ -61,7 +61,6 @@ public class StartGame : MonoBehaviour {
 				currentButton = 0;
 			}
 		}
-		Debug.Log(Input.GetAxis("Vertical"));
 
 	}
 
