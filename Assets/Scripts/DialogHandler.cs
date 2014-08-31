@@ -34,7 +34,7 @@ public class DialogHandler : MonoBehaviour {
 	//Sollten mehrere Dialoge kurz nacheinander ausgelöst werden, sollen sie nacheinander abgespielt werden. 
 	//Alternativen wären z.B. den vorherigen abzubrechen, zu pausieren oder den neuen gar nicht zu aktivieren.
 	public void Activate(int index){
-		if(index < subtitles.Length){
+		if(index < subtitles.Length && subtitles[index] != null){
 			subtitlesToActivate.Enqueue(index);
 		}
 	}

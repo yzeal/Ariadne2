@@ -8,7 +8,7 @@ public class Dialog : MonoBehaviour {
 
 	public AudioSource audio;
 
-	public int[] times; //in Sekunden
+	public float[] times; //in Sekunden
 	public string[] texts;
 	public int[] styles;
 	//(Kein Dictionary, da der sich nicht einfach im Editor bearbeiten lässt. Eine Klasse schien dafür etwas viel Overhead.)
