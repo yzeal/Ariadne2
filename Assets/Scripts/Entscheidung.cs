@@ -28,6 +28,8 @@ public class Entscheidung : MonoBehaviour {
 		black.Apply();
 
 		enabled = false;
+
+		menuTitle.fontSize = 50;
 	}
 	
 	// Update is called once per frame
@@ -71,7 +73,7 @@ public class Entscheidung : MonoBehaviour {
 		
 		GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), black, ScaleMode.StretchToFill);
 		
-		GUI.Label(new Rect(0f, Screen.height/2f - 200f, Screen.width, 200f), "Was willst du tun??", menuTitle);
+		GUI.Label(new Rect(0f, Screen.height/2f - 200f, Screen.width, 200f), "Gift ins System kippen?", menuTitle);
 		
 		GUI.SetNextControlName("auswahl1");
 		b1 = GUI.Button(new Rect(0f, Screen.height/2f, Screen.width, 100f), "Befehl befolgen", menuButton);
