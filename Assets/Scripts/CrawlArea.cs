@@ -3,6 +3,8 @@ using System.Collections;
 
 public class CrawlArea : MonoBehaviour {
 
+	public bool repos;
+
 	public bool justActivated;
 
 	private GameObject player;
@@ -17,9 +19,9 @@ public class CrawlArea : MonoBehaviour {
 		if(other.CompareTag("Player") && !justActivated){
 			GlobalVariables.Instance.inCrawlArea = true;
 			justActivated = true;
-//			GlobalVariables.Instance.crawling = true;
+			GlobalVariables.Instance.crawling = true;
 
-//			camRig.transform.position = player.transform.position - 1.2f * player.transform.forward;
+			if(repos) camRig.transform.position = player.transform.position - 1.2f * player.transform.forward;
 		}
 	}
 
