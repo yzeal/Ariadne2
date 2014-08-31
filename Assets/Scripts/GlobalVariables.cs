@@ -119,6 +119,7 @@ public class GlobalVariables : MonoBehaviour {
 				levelSequence[i] = "level" + i + "-" + supplevel;
 			}
 			levelSequence[4] = "level4";
+			levelSequence[5] = "ende";
 		}else{
 			minotaurusSpeed = PlayerPrefs.GetFloat("MinotaurusSpeed");
 			newGame = false;
