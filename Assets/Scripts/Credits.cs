@@ -2,8 +2,8 @@
 using System.Collections;
 
 public class Credits : MonoBehaviour {
-
-	public float speed = 0.01f;
+	
+	private float time = 20f;
 
 	public GUIStyle title;
 	public GUIStyle title2;
@@ -13,6 +13,8 @@ public class Credits : MonoBehaviour {
 
 	private bool startMoving;
 
+	private float startTime;
+
 	// Use this for initialization
 	void Start () {
 		Invoke("Move", 3f);
@@ -21,8 +23,12 @@ public class Credits : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-		if(startMoving){
-			yPos = Mathf.Lerp(yPos, Screen.height*3f, speed*Time.deltaTime);
+		float t = Time.time - startTime;
+
+		Debug.Log (t/time*100f);
+
+		if(startMoving && yPos < Screen.height*2f){
+			yPos = Mathf.Lerp(0f, Screen.height*2f, t/time);
 		}
 
 		if(Input.GetButtonDown("Jump")){
@@ -32,6 +38,7 @@ public class Credits : MonoBehaviour {
 
 	private void Move(){
 		startMoving = true;
+		startTime = Time.time;
 	}
 
 	void OnGUI(){
@@ -45,5 +52,7 @@ public class Credits : MonoBehaviour {
 		GUI.Label(new Rect(0f, Screen.height/4f + 4f*Screen.height/10f - yPos, Screen.width, Screen.height/10f), "Julia Wolf", title2);
 		GUI.Label(new Rect(0f, Screen.height/4f + 5f*Screen.height/10f - yPos, Screen.width, Screen.height/10f), "Dozent: Wolfgang Reichert", title2);
 		title2.alignment = TextAnchor.MiddleRight;
+
+		GUI.Label(new Rect(0f, Screen.height*3f - Screen.height/2f - yPos, Screen.width, Screen.height/10f), "ende", title);
 	}
 }
