@@ -61,28 +61,30 @@ public class Bodenschalter : MonoBehaviour {
 
 	void OnTriggerEnter(Collider other) {
 		Debug.Log("trigger enter");
-		if(!justActivated && !on && other.CompareTag("Player")){
-//		if(!on && other.CompareTag("Player")){
-			on = true;
-			if(save && GlobalVariables.Instance.autoSave){
-				PlayerPrefs.SetInt(Application.loadedLevelName + "Switch" + id, 1);
-			}
-		}else
-
-		if(save && !justActivated && on && other.CompareTag("Player")){
-//		if(on && other.CompareTag("Player")){
-				on = false;
-				if(GlobalVariables.Instance.autoSave){
-					PlayerPrefs.SetInt(Application.loadedLevelName + "Switch" + id, 0);
+		if(!justActivated && other.CompareTag("Player")){
+			if(!on){
+	//		if(!on && other.CompareTag("Player")){
+				on = true;
+				if(save && GlobalVariables.Instance.autoSave){
+					PlayerPrefs.SetInt(Application.loadedLevelName + "Switch" + id, 1);
 				}
-			}
+			}else {
+	//		if(on && other.CompareTag("Player")){
+					on = false;
+					if(save && GlobalVariables.Instance.autoSave){
+						PlayerPrefs.SetInt(Application.loadedLevelName + "Switch" + id, 0);
+					}
+				}
 
-		justActivated = true;
+			justActivated = true;
+		}
 
 	}
 
 
 	void OnTriggerExit(Collider other){
-		justActivated = false;
+		if(other.CompareTag("Player")){
+			justActivated = false;
+		}
 	}
 }
