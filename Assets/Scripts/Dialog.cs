@@ -10,11 +10,13 @@ public class Dialog : MonoBehaviour {
 
 	public int[] times; //in Sekunden
 	public string[] texts;
+	public int[] styles;
 	//(Kein Dictionary, da der sich nicht einfach im Editor bearbeiten lässt. Eine Klasse schien dafür etwas viel Overhead.)
 
 	public bool active;
 
-	public GUIStyle textStyle;
+//	public GUIStyle textStyle;
+	public GUIStyle[] textStyles;
 
 	private int currentText = 0;
 	private Texture2D schwarz;
@@ -59,6 +61,8 @@ public class Dialog : MonoBehaviour {
 				}
 //				GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height*0.1f), schwarz, ScaleMode.StretchToFill);
 //				GUI.Label(new Rect(Screen.width*0.05f, 0f, Screen.width*0.9f, Screen.height*0.1f), texts[currentText], textStyle);
+				GUIStyle textStyle = textStyles[styles[currentText]];
+				Debug.Log(textStyle.normal.textColor);
 				GUI.DrawTexture(new Rect(0f, Screen.height*0.9f, Screen.width, Screen.height*0.1f), schwarz, ScaleMode.StretchToFill);
 				GUI.Label(new Rect(Screen.width*0.05f, Screen.height*0.9f, Screen.width*0.9f, Screen.height*0.1f), texts[currentText], textStyle);
 			}else{
