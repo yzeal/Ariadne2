@@ -25,7 +25,8 @@ public class CrawlArea : MonoBehaviour {
 
 	void OnTriggerExit(Collider other){
 		if(other.CompareTag("Player")){
-			GlobalVariables.Instance.toggleCrawl = true;
+			GlobalVariables.Instance.crawling = false;
+			GlobalVariables.Instance.toggleCrawl = false;
 			justActivated = false;
 //			GlobalVariables.Instance.crawling = false;
 		}
@@ -37,6 +38,13 @@ public class CrawlArea : MonoBehaviour {
 ////			camRig.transform.position = player.transform.position;
 //		}
 //	}
+
+	void OnTriggerStay(Collider other){
+		if(other.CompareTag("Player")){
+			GlobalVariables.Instance.crawling = true;
+			GlobalVariables.Instance.toggleCrawl = true;
+		}
+	}
 
 
 

@@ -70,9 +70,9 @@ public class GlobalVariables : MonoBehaviour {
 		}
 
 
-		if(Input.GetKeyDown("p")){
-			toggleCrawl = true;
-		}
+//		if(Input.GetKeyDown("p")){
+//			toggleCrawl = true;
+//		}
 	}
 
 	void OnGUI(){
@@ -82,6 +82,10 @@ public class GlobalVariables : MonoBehaviour {
 //	void OnLevelWasLoaded(){
 //		untertitelHandler = GameObject.Find("UntertitelHandler").GetComponent<UntertitelHandler>();
 //	}
+
+	void OnLevelWasLoaded(){
+		toggleCrawl = false;
+	}
 
 	public void load(){
 

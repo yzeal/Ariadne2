@@ -86,7 +86,7 @@ namespace com.ootii.AI.Controllers
             // Only move in if the stance is set or it's time to move in
             if (mController.State.Stance == EnumControllerStance.SNEAK ||
 //                mController.State.Stance == EnumControllerStance.TRAVERSAL && InputManager.IsJustPressed("ChangeStance"))
-			    InputManager.IsJustPressed("ChangeStance"))
+			    InputManager.IsJustPressed("ChangeStance") || (GlobalVariables.Instance != null && GlobalVariables.Instance.crawling))
             {
                 return true;
             }
@@ -103,6 +103,10 @@ namespace com.ootii.AI.Controllers
         public override bool TestUpdate()
         {
             if (mIsActivatedFrame) { return true; }
+
+			if(GlobalVariables.Instance != null && !GlobalVariables.Instance.crawling){
+				return false;
+			}
 
             if (!IsInSneakState) { return false; }
 //            if (!mController.IsGrounded) { return false; }

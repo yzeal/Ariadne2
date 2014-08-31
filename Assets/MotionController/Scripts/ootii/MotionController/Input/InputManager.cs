@@ -16,6 +16,7 @@ namespace com.ootii.Input
 #pragma warning disable 0414
         private static InputManagerStub sStub = (new GameObject("InputManagerStub")).AddComponent<InputManagerStub>();
 #pragma warning restore 0414
+		
 
         /// <summary>
         /// Set by an external object, it tracks the angle of the
@@ -312,13 +313,17 @@ namespace com.ootii.Input
             else if (rAction == "ChangeStance")
             {
 //                if (UnityEngine.Input.GetKeyDown(KeyCode.T)) { return true; }
-
-				if (GlobalVariables.Instance != null && GlobalVariables.Instance.toggleCrawl) {
-					GlobalVariables.Instance.toggleCrawl = false; 
-					GlobalVariables.Instance.crawling = GlobalVariables.Instance.crawling ? false : true; 
-					Debug.Log("crawling: " + GlobalVariables.Instance.crawling);
+				if(UnityEngine.Input.GetButtonDown("crawlButton") && (GlobalVariables.Instance != null && !GlobalVariables.Instance.toggleCrawl)){
+					if(GlobalVariables.Instance != null) GlobalVariables.Instance.crawling = GlobalVariables.Instance.crawling ? false : true;
 					return true;
 				}
+
+//				if (GlobalVariables.Instance != null && GlobalVariables.Instance.toggleCrawl) {
+//					GlobalVariables.Instance.toggleCrawl = false; 
+//					GlobalVariables.Instance.crawling = GlobalVariables.Instance.crawling ? false : true; 
+//					Debug.Log("crawling: " + GlobalVariables.Instance.crawling);
+//					return true;
+//				}
 
 //				if(GlobalVariables.Instance != null && GlobalVariables.Instance.crawling){
 //					return false;
