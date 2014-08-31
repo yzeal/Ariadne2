@@ -21,7 +21,7 @@ public class CrawlArea : MonoBehaviour {
 			justActivated = true;
 			GlobalVariables.Instance.crawling = true;
 
-			if(repos) camRig.transform.position = player.transform.position - 1.2f * player.transform.forward;
+			if(repos&& camRig != null) camRig.transform.position = player.transform.position - 1.2f * player.transform.forward;
 		}
 	}
 

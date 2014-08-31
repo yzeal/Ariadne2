@@ -60,14 +60,14 @@ public class Credits : MonoBehaviour {
 		GUI.Label(new Rect(0f, Screen.height/4f + 12f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Programmierung", title2);
 //		GUI.Label(new Rect(0f, Screen.height/4f + 13f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Audio", title2);
 
-		GUI.Label(new Rect(0f, Screen.height/4f + 15f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Musik", title2);
+//		GUI.Label(new Rect(0f, Screen.height/4f + 15f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Musik", title2);
 
 		GUI.Label(new Rect(Screen.width/2f + Screen.width/20f, Screen.height/4f + 10f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Benjamin Sonnenschein", text);
 		GUI.Label(new Rect(Screen.width/2f + Screen.width/20f, Screen.height/4f + 11f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Yasmin Schraven", text);
 		GUI.Label(new Rect(Screen.width/2f + Screen.width/20f, Screen.height/4f + 12f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Julia Wolf", text);
 		//		GUI.Label(new Rect(Screen.width/2f + Screen.width/20f, Screen.height/4f + 13f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Audio", text);
 		
-		GUI.Label(new Rect(Screen.width/2f + Screen.width/20f, Screen.height/4f + 15f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Rob Costlow (River)", text);
+//		GUI.Label(new Rect(Screen.width/2f + Screen.width/20f, Screen.height/4f + 15f*Screen.height/10f - yPos, Screen.width/2f - Screen.width/20f, Screen.height/10f), "Rob Costlow (River)", text);
 
 
 		GUI.Label(new Rect(0f, Screen.height*3f - Screen.height/2f - yPos, Screen.width, Screen.height/10f), "ende", title);
