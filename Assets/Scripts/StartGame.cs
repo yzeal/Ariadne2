@@ -24,6 +24,8 @@ public class StartGame : MonoBehaviour {
 
 		GlobalVariables.Instance.load();
 
+		GlobalVariables.Instance.crawling = false;
+
 		newGame = GlobalVariables.Instance.newGame;
 
 		if(newGame){
