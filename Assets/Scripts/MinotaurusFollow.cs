@@ -24,7 +24,8 @@ public class MinotaurusFollow : MonoBehaviour {
 	private Vector3 startPosition;
 
 	private bool glowing;
-	private Texture2D schwarz;
+//	private Texture2D schwarz;
+	public Texture schwarz;
 	private Texture glowy;
 	private Material mat;
 
@@ -41,15 +42,6 @@ public class MinotaurusFollow : MonoBehaviour {
 		mat = GetComponentInChildren<MeshRenderer>().material;
 
 		glowy = mat.GetTexture("_Illum");
-		if(glowy == null){
-			Debug.Log("glowynull");
-		}else if(mat == null){
-			Debug.Log("matnull");
-		}
-
-		schwarz = new Texture2D(1,1);
-		schwarz.SetPixel(0,0, new Color(0f,0f,0f));
-		schwarz.Apply();
 
 		mat.SetTexture("_Illum", schwarz);
     }
@@ -95,7 +87,7 @@ public class MinotaurusFollow : MonoBehaviour {
 			agent.SetDestination(transform.position);
 			if(glowing){
 				glowing = false;
-				mat.SetTexture("_Illum", schwarz);
+//				mat.SetTexture("_Illum", schwarz);
 			}
 		}
 
