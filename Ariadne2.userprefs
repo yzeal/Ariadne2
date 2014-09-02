@@ -1,32 +1,29 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\Dialog.cs">
     <Files>
-      <File FileName="Assets\Scripts\Teleport.cs" Line="46" Column="86" />
-      <File FileName="Assets\MotionController\Scripts\ootii\MotionController\AI\Controllers\Motions\ClimbCrouch.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\Dialog.cs" Line="48" Column="1" />
-      <File FileName="Assets\Scripts\DialogHandler.cs" Line="37" Column="58" />
-      <File FileName="Assets\Scripts\DialogTrigger.cs" Line="11" Column="13" />
-      <File FileName="Assets\Scripts\MinotaurusTrigger.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\GlobalVariables.cs" Line="141" Column="38" />
-      <File FileName="Assets\Scripts\Bodenschalter.cs" Line="1" Column="1" />
-      <File FileName="Assets\MotionController\Scripts\ootii\MotionController\AI\Controllers\Motions\Jump.cs" Line="1" Column="1" />
-      <File FileName="Assets\MotionController\Scripts\ootii\MotionController\AI\Controllers\Motions\Sneak.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\CrawlArea.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\Entscheidung.cs" Line="6" Column="19" />
-      <File FileName="Assets\Scripts\StartGame.cs" Line="59" Column="5" />
-      <File FileName="Assets\MotionController\Scripts\ootii\MotionController\AI\Controllers\MotionController.cs" Line="1" Column="1" />
-      <File FileName="Assets\MotionController\Scripts\ootii\MotionController\Input\InputManager.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\SpawnPoint.cs" Line="1" Column="1" />
-      <File FileName="Assets\MotionController\Scripts\ootii\Framework_v1\Cameras\AdventureRig.cs" Line="1" Column="1" />
-      <File FileName="Assets\MotionController\Scripts\ootii\Framework_v1\Cameras\EnumCameraMode.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\Gas.cs" Line="24" Column="8" />
-      <File FileName="Assets\Scripts\MinotaurusFollow.cs" Line="90" Column="41" />
+      <File FileName="Assets\Scripts\BlendIn.cs" Line="15" Column="11" />
+      <File FileName="Assets\Scripts\BlendOut.cs" Line="17" Column="9" />
+      <File FileName="Assets\Scripts\Bodenschalter.cs" Line="67" Column="24" />
+      <File FileName="Assets\Scripts\CrawlArea.cs" Line="32" Column="2" />
+      <File FileName="Assets\Scripts\Credits.cs" Line="61" Column="1" />
+      <File FileName="Assets\Scripts\Dialog.cs" Line="37" Column="3" />
+      <File FileName="Assets\Scripts\DialogHandler.cs" Line="16" Column="38" />
+      <File FileName="Assets\Scripts\DialogTrigger.cs" Line="7" Column="28" />
+      <File FileName="Assets\Scripts\Door.cs" Line="81" Column="4" />
+      <File FileName="Assets\Scripts\Entscheidung.cs" Line="21" Column="10" />
+      <File FileName="Assets\Scripts\EntscheidungTrigger.cs" Line="7" Column="30" />
+      <File FileName="Assets\Scripts\Gas.cs" Line="10" Column="28" />
+      <File FileName="Assets\Scripts\GlobalVariables.cs" Line="107" Column="20" />
+      <File FileName="Assets\Scripts\Hinweis.cs" Line="28" Column="20" />
+      <File FileName="Assets\Scripts\MinotaurusFollow.cs" Line="109" Column="17" />
+      <File FileName="Assets\Scripts\MinotaurusTrigger.cs" Line="27" Column="7" />
+      <File FileName="Assets\Scripts\Preloader.cs" Line="8" Column="31" />
       <File FileName="Assets\Scripts\SavePoint.cs" Line="1" Column="1" />
-      <File FileName="Assets\MotionController\Scripts\ootii\MotionController\AI\Controllers\Motions\ClimbMid.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\BlendIn.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\BlendOut.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\Credits.cs" Line="64" Column="3" />
+      <File FileName="Assets\Scripts\SpawnPoint.cs" Line="23" Column="95" />
+      <File FileName="Assets\Scripts\StartGame.cs" Line="116" Column="1" />
+      <File FileName="Assets\Scripts\Teleport.cs" Line="50" Column="3" />
+      <File FileName="Assets\MotionController\Scripts\ootii\MotionController\Input\InputManager.cs" Line="350" Column="40" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
